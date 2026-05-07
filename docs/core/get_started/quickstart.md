@@ -1,6 +1,6 @@
 # Quick Start: Wren CLI with jaffle_shop
 
-Use natural-language questions against the **jaffle\_shop** dataset using **Wren Engine CLI** and **Claude Code** — no cloud database, no Docker, no MCP server.
+Use natural-language questions against the **jaffle\_shop** dataset using **Wren AI Core CLI** and **Claude Code** — no cloud database, no Docker, no MCP server.
 
 > **Time:** ~15 minutes
 >
@@ -80,22 +80,24 @@ wren version
 
 ## Step 3 — Install CLI skills
 
-Skills are workflow guides that tell your AI coding agent how to use the Wren CLI effectively. Install both skills:
+Skills are workflow guides that tell your AI coding agent how to use the Wren CLI effectively. Install the skill bundle:
 
 ```bash
-npx skills add Canner/wren-engine --skill '*'
+npx skills add Canner/WrenAI --skill '*'
 # or:
-curl -fsSL https://raw.githubusercontent.com/Canner/wren-engine/main/skills/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash
 ```
 
 The CLI auto-detects your installed agent. To target a specific one, add `--agent <name>` (e.g., `claude-code`, `cursor`, `windsurf`, `cline`).
 
-This installs two skills:
+This quickstart uses two of the installed skills:
 
 | Skill | Purpose |
 |-------|---------|
 | **wren-usage** | Day-to-day workflow — gather context, recall past queries, write SQL, store results |
 | **wren-generate-mdl** | One-time setup — explore database schema and generate the MDL project |
+
+For the full skill list (including `wren-onboarding` and `wren-dlt-connector`), see [Installation](./installation.md#install-skills).
 
 ---
 
@@ -176,7 +178,7 @@ This creates:
 
 The generated `wren_project.yml` contains default values for `catalog` and `schema`:
 
-> **Note:** `catalog` and `schema` in `wren_project.yml` define the **Wren Engine namespace** — they have nothing to do with your database's catalog or schema. Keep the defaults (`wren` / `public`). The actual database location of each table is specified per-model in the `table_reference` section.
+> **Note:** `catalog` and `schema` in `wren_project.yml` define the **Wren AI Core namespace** — they have nothing to do with your database's catalog or schema. Keep the defaults (`wren` / `public`). The actual database location of each table is specified per-model in the `table_reference` section.
 
 ---
 
