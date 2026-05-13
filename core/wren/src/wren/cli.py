@@ -127,6 +127,55 @@ def _load_conn(
     return {}
 
 
+def _resolve_engine_profile(mdl: str | None) -> tuple[str | None, dict]:
+    """Resolve the connection profile for project-context CLI commands.
+
+    Project detection is decoupled from ``--mdl`` shape: ``--mdl`` is a pure
+    "which MDL artifact to load" override, project context is determined
+    independently by walking up from the MDL path (when it's a real file)
+    AND from cwd. Active profile is reserved for the case where neither
+    discovery finds a project — preventing ``--mdl <base64>`` or
+    ``--mdl /external.json`` from silently bypassing cwd's pin.
+    """
+    from wren.profile import (  # noqa: PLC0415
+        get_active_profile,
+        resolve_profile_for_project,
+    )
+
+    project_path = _discover_project_for_engine(mdl)
+    if project_path is None:
+        return get_active_profile()
+    return resolve_profile_for_project(project_path)
+
+
+def _discover_project_for_engine(mdl: str | None) -> Path | None:
+    """Find the project root for engine commands. Returns ``None`` if no
+    project context exists anywhere (caller should fall back to active).
+
+    Resolution order:
+      1. If ``--mdl`` is a real file, walk up its directory tree looking
+         for ``wren_project.yml``. ``<project>/target/mdl.json`` is a build
+         default, not a contract — users may keep MDL elsewhere.
+      2. Otherwise (``--mdl`` is base64, points outside a project, or is
+         absent), discover from cwd.
+    """
+    if mdl is not None:
+        mdl_path = Path(mdl).expanduser()
+        if mdl_path.exists() and mdl_path.is_file():
+            for parent in mdl_path.resolve().parents:
+                if (parent / "wren_project.yml").exists():
+                    return parent
+                if parent == Path.home() or parent == parent.parent:
+                    break
+
+    try:
+        from wren.context import discover_project_path  # noqa: PLC0415
+
+        return discover_project_path()
+    except SystemExit:
+        return None
+
+
 def _resolve_datasource(conn_dict: dict, explicit: str | None = None) -> str:
     """Return datasource from explicit arg or connection dict.
 
@@ -160,15 +209,15 @@ def _build_engine(
 
     manifest_str = _load_manifest(_require_mdl(mdl))
 
-    # Try active profile when no explicit connection flags given
+    # Try project-pinned profile (or fall back to active) when no explicit
+    # connection flags given.
     if not connection_info and not connection_file:
         from wren.profile import (  # noqa: PLC0415
             MissingSecretError,
             expand_profile_secrets,
-            get_active_profile,
         )
 
-        prof_name, prof_dict = get_active_profile()
+        prof_name, prof_dict = _resolve_engine_profile(mdl)
         if prof_dict:
             prof_ds = prof_dict.pop("datasource", None)
             ds_str = datasource or prof_ds
@@ -419,15 +468,18 @@ def dry_plan(
 
     manifest_str = _load_manifest(_require_mdl(mdl))
 
-    # Try active profile when no explicit flags given
+    # Try project-pinned profile (or fall back to active) when no explicit
+    # connection flags given.
     if datasource is None and connection_file is None:
-        from wren.profile import get_active_profile  # noqa: PLC0415
-
-        _prof_name, prof_dict = get_active_profile()
+        _prof_name, prof_dict = _resolve_engine_profile(mdl)
         if prof_dict:
             prof_ds = prof_dict.pop("datasource", None)
             if prof_ds is None:
-                typer.echo("Error: no datasource in active profile.", err=True)
+                typer.echo(
+                    "Error: no datasource in resolved profile "
+                    "(project-pinned or active).",
+                    err=True,
+                )
                 raise typer.Exit(1)
             try:
                 ds = DataSource(prof_ds.lower())

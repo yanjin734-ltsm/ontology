@@ -90,7 +90,9 @@ def init(
         return
 
     # ── Scaffold empty project (existing behavior) ────────────
-    project_file = project_path / "wren_project.yml"
+    from wren.context import PROJECT_FILE  # noqa: PLC0415
+
+    project_file = project_path / PROJECT_FILE
     agents_file = project_path / "AGENTS.md"
     queries_file = project_path / "queries.yml"
     conflicts = [f for f in (project_file, agents_file, queries_file) if f.exists()]
@@ -288,6 +290,7 @@ def validate(
     # ── Semantic validation (dry-plan + description checks) ──────────────
     sem_errors: list[str] = []
     sem_warnings: list[str] = []
+    config: dict = {}
     try:
         config = load_project_config(project_path)
         ds_str = config.get("data_source", "")
@@ -301,6 +304,30 @@ def validate(
     except Exception as e:
         sem_errors = [f"Semantic validation failed: {e}"]
 
+    # ── Profile binding check ─────────────────────────────────────────────
+    # Pinned profile that no longer exists → warning (or error in --strict).
+    # No pin at all → friendly info hint pointing to `set-profile`.
+    profile_pin = config.get("profile") if isinstance(config, dict) else None
+    if isinstance(profile_pin, str) and profile_pin.strip():
+        # Guard the lookup: if profiles.yml itself is unreadable / malformed,
+        # the user shouldn't see a raw traceback — surface it as a warning so
+        # validate can still report the rest.
+        try:
+            from wren.profile import list_profiles  # noqa: PLC0415
+
+            registered = list_profiles()
+        except Exception as profile_exc:
+            sem_warnings.append(
+                f"could not check pinned profile '{profile_pin}': {profile_exc}"
+            )
+        else:
+            if profile_pin.strip() not in registered:
+                sem_warnings.append(
+                    f"project pins profile '{profile_pin}' but it doesn't "
+                    "exist in ~/.wren/profiles.yml. "
+                    "Run `wren context set-profile <name>` to rebind."
+                )
+
     if sem_errors:
         typer.echo("\nSemantic errors:")
         for msg in sem_errors:
@@ -312,6 +339,21 @@ def validate(
     # ── Exit logic ──────────────────────────────────────────────────────────────────
     has_hard_error = bool(struct_hard or sem_errors)
     has_warning = bool(all_warnings)
+
+    # No-pin info hint — surface whenever validation has no hard errors,
+    # regardless of warning count. Gating it on a pristine project (the old
+    # behavior) hid the nudge from the users most likely to need it: anyone
+    # actively working through warnings. Placed BEFORE the exit raise so the
+    # hint is still visible under --strict (where warnings become exit 1).
+    # Hard errors still suppress so error output stays focused on the blocker.
+    no_pin = not (isinstance(profile_pin, str) and profile_pin.strip())
+    if no_pin and not has_hard_error:
+        typer.echo(
+            "\nNote: no profile bound to this project. Connection will fall "
+            "back to the\n"
+            "  globally active profile in ~/.wren/profiles.yml.\n"
+            "  Run `wren context set-profile <name>` to pin one explicitly."
+        )
 
     if has_hard_error or (strict and has_warning):
         raise typer.Exit(1)
@@ -519,6 +561,101 @@ def instructions(
     content = load_instructions(project_path)
     if content:
         typer.echo(content)
+
+
+@context_app.command(name="set-profile")
+def set_profile(
+    name: Annotated[str, typer.Argument(help="Profile name to bind to this project.")],
+    path: ProjectPathOpt = None,
+) -> None:
+    """Bind a connection profile to this project.
+
+    Writes ``profile: <name>`` and ``data_source: <profile.datasource>`` into
+    ``wren_project.yml``. Future CLI commands and the SDK use the bound
+    profile regardless of which profile is globally active.
+    """
+    from wren.context import (  # noqa: PLC0415
+        discover_project_path,
+        load_project_config,
+        save_project_config,
+    )
+    from wren.profile import list_profiles  # noqa: PLC0415
+
+    try:
+        project_path = discover_project_path(path)
+    except SystemExit as e:
+        typer.echo(str(e), err=True)
+        raise typer.Exit(1)
+
+    # discover_project_path() with explicit --path returns it un-checked, so
+    # confirm the project actually exists before binding a profile to nothing.
+    from wren.context import PROJECT_FILE  # noqa: PLC0415
+
+    if not (project_path / PROJECT_FILE).exists():
+        typer.echo(
+            f"Error: no {PROJECT_FILE} found at {project_path}.\n"
+            "  Run `wren context init` to scaffold a project first.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    try:
+        profiles = list_profiles()
+    except Exception as exc:
+        typer.echo(
+            f"Error: could not read ~/.wren/profiles.yml: {exc}",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    if name not in profiles:
+        avail = ", ".join(sorted(profiles)) or "(none)"
+        typer.echo(
+            f"Error: profile '{name}' not found in ~/.wren/profiles.yml.\n"
+            f"  Available profiles: {avail}\n"
+            f"  Run `wren profile add {name} --datasource <ds>` to create it.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    new_ds = profiles[name].get("datasource")
+    if not new_ds:
+        typer.echo(
+            f"Error: profile '{name}' has no datasource field. "
+            "Edit ~/.wren/profiles.yml or recreate it via `wren profile add`.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    config = load_project_config(project_path)
+    old_ds = config.get("data_source")
+    config["profile"] = name
+    config["data_source"] = new_ds
+    try:
+        save_project_config(project_path, config)
+    except OSError as exc:
+        typer.echo(
+            f"Error: could not write {project_path / PROJECT_FILE}: {exc}",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    project_name = config.get("name") or "<unnamed>"
+    typer.echo(f"✓ Bound profile '{name}' to project {project_name}")
+    typer.echo(f"  profile:     {name}")
+    if old_ds and old_ds != new_ds:
+        typer.echo(f"  data_source: {old_ds} -> {new_ds}")
+    else:
+        typer.echo(f"  data_source: {new_ds}")
+
+    # Stale-MDL warning: if datasource changed AND a built manifest already
+    # exists, it was emitted for the previous dialect and queries will break
+    # against the new connection until the user rebuilds.
+    if old_ds and old_ds != new_ds and (project_path / "target" / "mdl.json").exists():
+        typer.echo(
+            f"\n⚠ MDL was built for {old_ds}. Run `wren context build` "
+            "to regenerate before querying."
+        )
 
 
 @context_app.command()
