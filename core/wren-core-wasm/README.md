@@ -48,7 +48,6 @@ const mdl = {
     },
   ],
   relationships: [],
-  metrics: [],
   views: [],
 };
 
@@ -77,11 +76,53 @@ await engine.registerJson('orders', [
 const response = await fetch('orders.parquet');
 await engine.registerParquet('orders', await response.arrayBuffer());
 
+// Or register CSV — string or bytes, with optional schema / delimiter / quote
+await engine.registerCsv('orders', 'id,customer,amount\n1,Alice,100\n2,Bob,200');
+
 // Load MDL with empty source (uses pre-registered tables)
 await engine.loadMDL(mdl, { source: '' });
 
 const rows = await engine.query('SELECT * FROM "Orders" LIMIT 10');
 ```
+
+## Examples
+
+The `examples/` directory ships runnable browser demos. They import the
+local WASM build from `pkg/`, so they always reflect the current source
+— useful while iterating on the Rust or TypeScript side.
+
+```bash
+# Build the WASM binary (debug build is fine for examples)
+just build-wasm-dev
+
+# Start the static dev server with CORS + Range support
+just serve
+```
+
+The server prints every demo URL on startup. Open any of them in a browser:
+
+| Demo | URL | What it shows |
+|---|---|---|
+| Inline data | http://localhost:8787/examples/inline.html | `registerJson` + raw SQL `query()` |
+| URL mode | http://localhost:8787/examples/url-mode.html | Remote Parquet via HTTP range requests |
+| CDN smoke test | http://localhost:8787/examples/test-cdn.html | Loading the published package from unpkg |
+| **Cube quickstart** | http://localhost:8787/examples/cube-quickstart.html | Minimal `cubeQuery()` — three preset queries (group-by, filter, time bucket) |
+| **Cube explorer** | http://localhost:8787/examples/cube-explorer.html | Form-driven builder for `CubeQuery` — pick measures/dimensions, add filters, choose granularity + date range |
+| **CSV quickstart** | http://localhost:8787/examples/csv-quickstart.html | `registerCsv()` against real files in `data/` — inferred schema, custom delimiter (TSV), and headerless CSV with explicit schema |
+
+### Cube quickstart vs explorer
+
+- **Quickstart** loads a single `order_metrics` cube and fires hardcoded
+  `cubeQuery()` calls when you click a button. Read the source to see
+  the smallest end-to-end cube example.
+- **Explorer** is interactive: a checkbox/select form generates the
+  `CubeQuery` JSON live (shown next to the result), and you can add as
+  many filters as you like with all 12 `FilterOperator` values. The
+  demo data is spread across regions / customers / months so groupings
+  produce non-trivial numbers.
+
+After Rust changes, re-run `just build-wasm-dev` and refresh the page —
+the examples import directly from `pkg/wren_core_wasm.js`.
 
 ## API Reference
 
@@ -125,6 +166,36 @@ Register JSON data as a named table. Call before `loadMDL` in inline mode.
 ```typescript
 async registerJson(name: string, data: object[]): Promise<void>
 ```
+
+### `engine.registerCsv(name, data, options?)`
+
+Register CSV data as a named table. Accepts a string (treated as UTF-8) or any
+`BufferSource` (ArrayBuffer / TypedArray / Node Buffer). By default the first
+row is the header and the schema is inferred from the first 1000 rows.
+
+```typescript
+async registerCsv(
+  name: string,
+  data: string | BufferSource,
+  options?: CsvReadOptions,
+): Promise<void>
+```
+
+| Option (camelCase) | Type | Default | Description |
+|---|---|---|---|
+| `header` | `boolean` | `true` | First row is a header. |
+| `delimiter` | `string` | `","` | Field delimiter (single ASCII char). |
+| `quote` | `string` | `"\""` | Quote character (single ASCII char). |
+| `escape` | `string` | unset | Escape character (single ASCII char). |
+| `terminator` | `string` | any of `\n`, `\r\n` | Record terminator (single ASCII char). |
+| `batchSize` | `number` | `8192` | RecordBatch size. |
+| `inferRows` | `number` | `1000` | Rows scanned for inference. Ignored when `schema` is set. |
+| `schema` | `CsvSchemaColumn[]` | inferred | Explicit Arrow schema `{ name, type, nullable? }[]`. |
+
+Schema column types (case-insensitive): `int8`/`int16`/`int32`/`int64`,
+`uint8`/`uint16`/`uint32`/`uint64`, `float32`/`float64`, `boolean`,
+`string` (alias `utf8`/`varchar`/`text`), `date`/`date32`/`date64`,
+`timestamp` and `timestamp_{s,ms,us,ns}`.
 
 ### `engine.query(sql)`
 

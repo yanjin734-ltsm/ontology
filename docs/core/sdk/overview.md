@@ -6,6 +6,7 @@ Wren AI Core integrates with popular AI agent frameworks. Each SDK exposes a CLI
 
 - **[LangChain / LangGraph](./langchain.md)** — `wren-langchain` on PyPI
 - **[Pydantic AI](./pydantic.md)** — `wren-pydantic` on PyPI
+- **[Browser / WebAssembly](./wasm.md)** — `@wrenai/wren-core-wasm` on npm. Runs the semantic engine entirely in the browser; no server, no CLI bootstrap.
 
 ## Other access modes
 

@@ -6,7 +6,7 @@ Reference for AI agents generating browser-based HTML dashboard artifacts using 
 
 ```html
 <script type="module">
-  import { WrenEngine } from 'https://unpkg.com/@wrenai/wren-core-wasm@0.1.0/dist/index.js';
+  import { WrenEngine } from 'https://unpkg.com/@wrenai/wren-core-wasm@0.3.0/dist/index.js';
 </script>
 ```
 
@@ -46,6 +46,10 @@ await engine.registerJson('orders', [
 const parquetBytes = Uint8Array.from(atob(PARQUET_BASE64), c => c.charCodeAt(0));
 await engine.registerParquet('orders', parquetBytes.buffer);
 
+// Or from CSV (string or bytes). Inference handles common cases; pass
+// `{ schema: [...] }` to force a specific Arrow schema.
+await engine.registerCsv('orders', csvString);
+
 await engine.loadMDL(mdlJson, { source: '' });
 const rows = await engine.query('SELECT * FROM "Orders" LIMIT 100');
 ```
@@ -72,7 +76,6 @@ const mdl = {
     },
   ],
   relationships: [],
-  metrics: [],
   views: [],
 };
 ```
@@ -85,6 +88,63 @@ const mdl = {
 - **D3.js**: `d3.select('svg').selectAll('rect').data(rows)`
 - **console.table**: `console.table(rows)`
 - **HTML table**: iterate `rows` to build `<tr>/<td>` elements
+
+## Cube Query API
+
+For aggregation queries, prefer `cubeQuery()` over raw SQL. The cube layer
+generates correct `GROUP BY`, `DATE_TRUNC`, and `WHERE` clauses from a
+structured input — fewer hand-written errors for the agent.
+
+> ⚠️ Both `listCubes()` and `cubeQuery()` require `await engine.loadMDL(...)`
+> to have completed first — they throw an error otherwise.
+
+### List available cubes
+
+```javascript
+const cubes = engine.listCubes();
+// → [{ name: "order_metrics", baseObject: "orders", measures: [...],
+//      dimensions: [...], timeDimensions: [...], hierarchies: {...} }]
+```
+
+### Execute a cube query
+
+```javascript
+const rows = await engine.cubeQuery({
+  cube: "order_metrics",
+  measures: ["revenue", "order_count"],
+  dimensions: ["status"],
+  timeDimensions: [{
+    dimension: "created_at",
+    granularity: "month",
+    dateRange: ["2024-01-01", "2025-01-01"],
+  }],
+  filters: [
+    { dimension: "status", operator: "eq", value: "completed" },
+  ],
+  limit: 100,
+});
+```
+
+`rows` has the same `Record<string, unknown>[]` shape as `query()`.
+
+### `cubeQuery` vs `query`
+
+| Situation | Use |
+|---|---|
+| Aggregating measures over dimensions (with optional time bucket) | `cubeQuery` |
+| Free-form SQL — joins across models, window functions, custom CTEs | `query` |
+| MDL has no cubes defined | `query` |
+
+### Filter operators
+
+`eq`, `neq`, `in`, `not_in`, `gt`, `gte`, `lt`, `lte`, `contains`,
+`starts_with`, `is_null`, `is_not_null`. Pass `value` as an array for
+`in`/`not_in`; omit `value` for `is_null`/`is_not_null`.
+
+### Time granularity
+
+`year` | `quarter` | `month` | `week` | `day` | `hour` | `minute`.
+`dateRange` is `[startInclusive, endExclusive]`.
 
 ## Complete HTML Template (Inline Mode)
 
@@ -103,7 +163,7 @@ const mdl = {
   <div id="status">Loading engine...</div>
 
   <script type="module">
-    import { WrenEngine } from 'https://unpkg.com/@wrenai/wren-core-wasm@0.1.0/dist/index.js';
+    import { WrenEngine } from 'https://unpkg.com/@wrenai/wren-core-wasm@0.3.0/dist/index.js';
 
     const status = document.getElementById('status');
 
@@ -134,7 +194,7 @@ const mdl = {
           ],
           primaryKey: 'id',
         }],
-        relationships: [], metrics: [], views: [],
+        relationships: [], views: [],
       };
       await engine.loadMDL(mdl, { source: '' });
 
@@ -170,7 +230,7 @@ const mdl = {
 ## Common Pitfalls
 
 1. **Model names are case-sensitive** — use double quotes: `FROM "Orders"`, not `FROM Orders`
-2. **`loadMDL` must be called after `registerJson`/`registerParquet`** in inline mode
+2. **`loadMDL` must be called after `registerJson`/`registerParquet`/`registerCsv`** in inline mode
 3. **WASM binary is ~68 MB** — show a loading indicator during `WrenEngine.init()`
 4. **`source: ''`** means "use pre-registered tables only" — don't pass `''` if you expect URL mode
 5. **CORS required** for URL mode — `file://` protocol won't work for fetching remote Parquet
