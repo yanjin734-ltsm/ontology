@@ -1,4 +1,4 @@
-"""Validation tests for ``wren memory load`` YAML input."""
+"""Validation tests for ``ontology memory load`` YAML input."""
 
 from __future__ import annotations
 

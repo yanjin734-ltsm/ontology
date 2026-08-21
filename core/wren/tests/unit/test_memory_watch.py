@@ -1,4 +1,4 @@
-"""Unit tests for the dependency-free memory watch loop (`wren memory watch`).
+"""Unit tests for the dependency-free memory watch loop (`ontology memory watch`).
 
 These run in the unit CI job: they exercise the change-detection + reindex
 loop logic in :mod:`wren.memory.watch` using only the standard library, plus
@@ -234,8 +234,8 @@ def test_watch_loop_clamps_interval(tmp_path, monkeypatch):
 
 
 def test_cli_watch_grep_backend_exits(tmp_path, monkeypatch):
-    monkeypatch.setenv("WREN_MEMORY_BACKEND", "grep")
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
+    monkeypatch.setenv("ONTOLOGY_MEMORY_BACKEND", "grep")
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
     (tmp_path / "wren_project.yml").write_text("name: t\n", encoding="utf-8")
     result = runner.invoke(app, ["memory", "watch", "--max-polls", "1"])
     assert result.exit_code == 1

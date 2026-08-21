@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,7 +22,7 @@ from wren.memory.schema_indexer import (
     manifest_hash,
 )
 
-_WREN_MEMORY_DIR = Path.home() / ".wren" / "memory"
+_ONTOLOGY_MEMORY_DIR = Path(os.environ.get("ONTOLOGY_HOME", str(Path.home() / ".ontology"))).expanduser() / "memory"
 
 _SCHEMA_TABLE = "schema_items"
 _QUERY_TABLE = "query_history"
@@ -77,7 +78,7 @@ class MemoryStore:
     Parameters
     ----------
     path:
-        Directory for LanceDB storage.  Defaults to ``~/.wren/memory/``.
+        Directory for LanceDB storage.  Defaults to ``~/.ontology/memory/``.
     model_name:
         Sentence-transformers model name.  ``None`` → default multilingual model.
     """
@@ -89,7 +90,7 @@ class MemoryStore:
     ):
         import lancedb  # noqa: PLC0415
 
-        resolved = Path(path).expanduser() if path else _WREN_MEMORY_DIR
+        resolved = Path(path).expanduser() if path else _ONTOLOGY_MEMORY_DIR
         resolved.mkdir(parents=True, exist_ok=True)
         self._path = resolved
         self._db = lancedb.connect(str(resolved))
@@ -143,7 +144,7 @@ class MemoryStore:
             if len(unique_dims) > 1:
                 raise ValueError(
                     f"Mixed-dimension memory store: {dims!r}. This happens "
-                    "when WREN_EMBEDDING_MODEL was swapped for a "
+                    "when ONTOLOGY_EMBEDDING_MODEL was swapped for a "
                     "different-dim model against an existing store. Reset "
                     "the store or restore the original model to continue."
                 )
@@ -160,7 +161,7 @@ class MemoryStore:
                     raise ValueError(
                         f"New vector dim {dim} does not match existing "
                         f"table '{name}' dim {existing_dim}. This happens "
-                        "when WREN_EMBEDDING_MODEL was swapped for a "
+                        "when ONTOLOGY_EMBEDDING_MODEL was swapped for a "
                         "different-dim model against an existing store. "
                         "Reset the store or restore the original model to "
                         "continue."

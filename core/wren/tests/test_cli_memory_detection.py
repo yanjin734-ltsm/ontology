@@ -45,7 +45,7 @@ def test_memory_subcommand_registered_when_extra_present():
 
 
 def test_memory_subcommand_always_registered():
-    """`memory` is always registered — `wren memory store` writes knowledge/sql/*.md
+    """`memory` is always registered — `ontology memory store` writes knowledge/sql/*.md
     without the extra; lancedb-backed commands degrade with a clear message."""
     cli = importlib.import_module("wren.cli")
     names = {g.typer_instance.info.name for g in cli.app.registered_groups}

@@ -1,4 +1,4 @@
-"""Behavior tests for the app index — `wren genbi register/list/remove`."""
+"""Behavior tests for the app index — `ontology genbi register/list/remove`."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def test_register_writes_index_entry(tmp_path: Path) -> None:
     )
 
     assert result.exit_code == 0, result.output
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     entry = index["apps"]["myapp"]
     assert entry["source"] == "apps/myapp"
     assert entry["data_mode"] == "snapshot"
@@ -54,7 +54,7 @@ def test_register_requires_app_dir_on_disk(tmp_path: Path) -> None:
 
     assert result.exit_code != 0
     assert "no app found" in result.output.lower()
-    assert not (project / ".wren" / "apps.yml").exists()
+    assert not (project / ".ontology" / "apps.yml").exists()
 
 
 def test_register_is_idempotent_update(tmp_path: Path) -> None:
@@ -67,7 +67,7 @@ def test_register_is_idempotent_update(tmp_path: Path) -> None:
     )
 
     assert r1.exit_code == 0 and r2.exit_code == 0
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     assert list(index["apps"].keys()) == ["myapp"]  # no duplicate
     assert index["apps"]["myapp"]["data_mode"] == "live"  # updated
 
@@ -106,7 +106,7 @@ def test_remove_deletes_index_entry(tmp_path: Path) -> None:
     result = runner.invoke(app, ["genbi", "remove", "myapp", "-p", str(project)])
 
     assert result.exit_code == 0, result.output
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     assert "myapp" not in index["apps"]
     # listing afterwards shows nothing
     listed = runner.invoke(app, ["genbi", "list", "-p", str(project)])

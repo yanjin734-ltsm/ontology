@@ -18,7 +18,7 @@ from wren.profile_web import create_app  # noqa: E402
 def isolated_profiles(tmp_path, monkeypatch):
     """Redirect profile I/O to a temp directory for test isolation."""
     profiles_file = tmp_path / "profiles.yml"
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", profiles_file)
     return profiles_file
 

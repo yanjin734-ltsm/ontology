@@ -1,22 +1,21 @@
 #!/usr/bin/env bash
-# Install the Wren AI agent skill discovery stub into your local AI client.
+# Install the Ontology Engine agent skill discovery stub into your local AI client.
 #
-# The actual skill content lives inside the `wren` CLI itself
-# (`pip install wrenai`). This script installs the discovery stub (`wren`)
+# The actual skill content lives inside the ontology CLI itself
+# (pip install ontology-cli). This script installs the discovery stub (ontology)
 # that points an AI client at the CLI; from then on the agent fetches
-# everything else via `wren skills get` / `wren ask`.
+# everything else via ontology skills get / ontology ask.
 #
 # Usage:
-#   ./install.sh                # install the discovery stub
+#   ./install.sh                # install the discovery stub from this clone
 #   ./install.sh --force        # overwrite an existing install
-#   curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash
+#
+# v0: local clone only. Do not download from Canner/WrenAI.
 
 set -euo pipefail
 
-REPO="Canner/WrenAI"
-BRANCH="${WREN_SKILLS_BRANCH:-main}"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-SKILL="wren"
+SKILL="ontology"
 
 FORCE=false
 for arg in "$@"; do
@@ -26,7 +25,6 @@ for arg in "$@"; do
   esac
 done
 
-# Detect whether we are running from a local clone or piped via curl.
 SCRIPT_DIR=""
 if [ -n "${BASH_SOURCE[0]:-}" ] && [ "${BASH_SOURCE[0]}" != "/dev/stdin" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,19 +49,11 @@ if [ -n "$SCRIPT_DIR" ] && [ -d "$SCRIPT_DIR/$SKILL" ]; then
   echo ""
   install_skill "$SCRIPT_DIR/$SKILL" "$DEST/$SKILL"
 else
-  echo "Downloading skill from GitHub ($REPO @ $BRANCH)..."
-  echo "Destination: $DEST"
-  echo ""
-  tmpdir=$(mktemp -d)
-  trap 'rm -rf "$tmpdir"' EXIT
-  curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" \
-    | tar -xz -C "$tmpdir" --strip-components=2 "WrenAI-${BRANCH}/skills/${SKILL}"
-  install_skill "$tmpdir/$SKILL" "$DEST/$SKILL"
+  echo "Public skill download is not published yet (v0)."
+  echo "Run this script from a local Ontology Engine clone so skills/ontology exists."
+  exit 1
 fi
 
 echo ""
 echo "Done. Invoke the skill in your AI client:"
 echo "  /$SKILL"
-echo ""
-echo "To update later, re-run with --force:"
-echo "  curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash -s -- --force"

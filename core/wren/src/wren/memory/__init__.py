@@ -15,12 +15,12 @@ from pathlib import Path
 
 
 class WrenMemory:
-    """High-level memory API for Wren Engine.
+    """High-level memory API for Ontology Engine.
 
     Parameters
     ----------
     path:
-        LanceDB storage directory.  Defaults to ``~/.wren/memory/``.
+        LanceDB storage directory.  Defaults to ``~/.ontology/memory/``.
     """
 
     def __init__(self, path: str | Path | None = None):

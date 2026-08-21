@@ -3,8 +3,8 @@
 > **Where to author new skill content:**
 > **NOT here under `skills/`.** New skill guides ship as Python package data
 > in [`core/wren/src/wren/skills_content/<name>/`](../core/wren/src/wren/skills_content/),
-> served at runtime by `wren skills get <name>`. That keeps the content
-> version-aligned with the installed `wren` CLI — no skill cache, no
+> served at runtime by `ontology skills get <name>`. That keeps the content
+> version-aligned with the installed `ontology` CLI — no skill cache, no
 > `versions.json` drift hack.
 >
 > This `skills/` tree only contains the **distribution stubs** that AI clients
@@ -22,10 +22,10 @@ changed is where the files live and how they reach the agent.
 ```text
 <name>/
 ├── SKILL.md              # Required — frontmatter + workflow instructions
-├── references/           # Optional — reference docs, served by `wren skills get <name> --full`
+├── references/           # Optional — reference docs, served by `ontology skills get <name> --full`
 │   ├── some-topic.md
 │   └── another-topic.md
-└── scripts/              # Optional — bundled scripts, served by `wren skills get <name> --script <s>`
+└── scripts/              # Optional — bundled scripts, served by `ontology skills get <name> --script <s>`
 ```
 
 ---
@@ -39,7 +39,7 @@ description: "What this skill does and when to trigger it. Include trigger
   keywords so an AI client can match it to user intent."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 ```
 
@@ -52,10 +52,10 @@ version, since the SKILL.md ships inside the wheel.
 
 | Tier | Content | Loaded when |
 |------|---------|-------------|
-| 1 — Discovery stub | `skills/wren/SKILL.md` frontmatter description (~few hundred tokens) | At every AI-client session start |
-| 2 — Main guide | `wren skills get <name>` | The agent runs the command when the user's task matches |
-| 3 — References | `wren skills get <name> --full` | The agent opts in when it needs depth |
-| 3 — Scripts | `wren skills get <name> --script <s>` | Same |
+| 1 — Discovery stub | `skills/ontology/SKILL.md` frontmatter description (~few hundred tokens) | At every AI-client session start |
+| 2 — Main guide | `ontology skills get <name>` | The agent runs the command when the user's task matches |
+| 3 — References | `ontology skills get <name> --full` | The agent opts in when it needs depth |
+| 3 — Scripts | `ontology skills get <name> --script <s>` | Same |
 
 Keep `SKILL.md` under ~500 lines. Move reference-only content into `references/`.
 
@@ -78,12 +78,12 @@ Keep `SKILL.md` under ~500 lines. Move reference-only content into `references/`
 Cross-link inside the same skill by reference name (delivered via `--full`):
 ```markdown
 For the CTE rewrite pipeline, see the `wren-sql` reference (run
-`wren skills get usage --full`).
+`ontology skills get usage --full`).
 ```
 
 Cross-link to another skill via its CLI command:
 ```markdown
-For day-to-day querying after setup, run `wren skills get usage`.
+For day-to-day querying after setup, run `ontology skills get usage`.
 ```
 
 Cross-link to a general doc:
@@ -108,8 +108,8 @@ For troubleshooting, see [`connect.md`](https://github.com/Canner/WrenAI/blob/ma
 
 1. Create the directory under `core/wren/src/wren/skills_content/<name>/` with `SKILL.md` (and optional `references/`, `scripts/`).
 2. Author the content following the format above.
-3. Add a test to `core/wren/tests/unit/test_skills_cli.py` verifying `wren skills get <name>` returns the guide and `--full` inlines its references (if any).
-4. Done — there is no separate `versions.json` / `index.json` to update; the package-data ships with the wheel and `wren skills list` enumerates it automatically.
+3. Add a test to `core/wren/tests/unit/test_skills_cli.py` verifying `ontology skills get <name>` returns the guide and `--full` inlines its references (if any).
+4. Done — there is no separate `versions.json` / `index.json` to update; the package-data ships with the wheel and `ontology skills list` enumerates it automatically.
 
 No `bash skills/check-versions.sh` step — version drift is impossible by
 construction (content travels with the binary).

@@ -708,30 +708,30 @@ def test_discover_walk_up(tmp_path, monkeypatch):
 def test_discover_no_project_raises(tmp_path, monkeypatch):
     """No project found anywhere — discover_project_path raises SystemExit."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("WREN_PROJECT_HOME", raising=False)
-    # Use a non-existent WREN_HOME so no config.yml can be found
-    monkeypatch.setenv("WREN_HOME", str(tmp_path / "empty_wren_home"))
+    monkeypatch.delenv("ONTOLOGY_PROJECT_HOME", raising=False)
+    # Use a non-existent ONTOLOGY_HOME so no config.yml can be found
+    monkeypatch.setenv("ONTOLOGY_HOME", str(tmp_path / "empty_wren_home"))
     import importlib  # noqa: PLC0415
 
     import wren.context as ctx  # noqa: PLC0415
 
     importlib.reload(ctx)
-    with pytest.raises(SystemExit, match="no wren project found"):
+    with pytest.raises(SystemExit, match="no Ontology Engine project found"):
         ctx.discover_project_path()
 
 
 def test_discover_via_env_var(tmp_path, monkeypatch):
-    """WREN_PROJECT_HOME env var overrides cwd walk."""
+    """ONTOLOGY_PROJECT_HOME env var overrides cwd walk."""
     project_dir = tmp_path / "my_project"
     project_dir.mkdir()
     (project_dir / "wren_project.yml").write_text("name: test\ndata_source: pg\n")
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(project_dir))
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(project_dir))
     result = discover_project_path()
     assert result == project_dir
 
 
 def test_discover_via_config(tmp_path, monkeypatch):
-    """~/.wren/config.yml default_project used as last fallback."""
+    """~/.ontology/config.yml default_project used as last fallback."""
     project_dir = tmp_path / "my_project"
     project_dir.mkdir()
     (project_dir / "wren_project.yml").write_text("name: test\ndata_source: pg\n")
@@ -739,8 +739,8 @@ def test_discover_via_config(tmp_path, monkeypatch):
     wren_home.mkdir()
     (wren_home / "config.yml").write_text(f"default_project: {project_dir}\n")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("WREN_PROJECT_HOME", raising=False)
-    monkeypatch.setenv("WREN_HOME", str(wren_home))
+    monkeypatch.delenv("ONTOLOGY_PROJECT_HOME", raising=False)
+    monkeypatch.setenv("ONTOLOGY_HOME", str(wren_home))
     import importlib  # noqa: PLC0415
 
     import wren.context as ctx  # noqa: PLC0415

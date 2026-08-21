@@ -1502,19 +1502,19 @@ class TestMarkdownSourcedIndex:
         pytest.importorskip(
             "sentence_transformers", reason="wren[memory] extras not installed"
         )
-        monkeypatch.setenv("WREN_MEMORY_BACKEND", "lancedb")
+        monkeypatch.setenv("ONTOLOGY_MEMORY_BACKEND", "lancedb")
         from wren.memory.index_backend import get_index  # noqa: PLC0415
         from wren.memory.markdown import write_query_markdown  # noqa: PLC0415
 
         write_query_markdown(tmp_path, "Total revenue", "SELECT SUM(amount) FROM o")
-        idx = get_index(tmp_path, str(tmp_path / ".wren" / "memory"))
+        idx = get_index(tmp_path, str(tmp_path / ".ontology" / "memory"))
         assert idx.name == "lancedb"
         idx.rebuild()
         hits = idx.search("revenue", limit=3)
         assert any("SUM(amount)" in h["sql_query"] for h in hits)
 
     def test_cli_export_migrates_query_history_to_markdown(self, tmp_path, monkeypatch):
-        """`wren memory export` writes existing LanceDB pairs to knowledge/sql/."""
+        """`ontology memory export` writes existing LanceDB pairs to knowledge/sql/."""
         pytest.importorskip("lancedb", reason="wren[memory] extras not installed")
         pytest.importorskip(
             "sentence_transformers", reason="wren[memory] extras not installed"
@@ -1525,8 +1525,8 @@ class TestMarkdownSourcedIndex:
         from wren.memory.markdown import parse_query_markdown  # noqa: PLC0415
         from wren.memory.store import MemoryStore  # noqa: PLC0415
 
-        monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
-        store = MemoryStore(path=str(tmp_path / ".wren" / "memory"))
+        monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
+        store = MemoryStore(path=str(tmp_path / ".ontology" / "memory"))
         store.store_query(
             "Top revenue", "SELECT SUM(amount) FROM o", tags="source:user"
         )

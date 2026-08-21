@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "wrenai"
+name = "ontology-cli"
 version = "0.13.3"
-description = "Wren AI CLI and Python SDK — semantic SQL layer for 20+ data sources"
+description = "Ontology Engine CLI and Python SDK — semantic SQL layer for 20+ data sources"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Wren AI", email = "contact@getwren.ai" }]
-keywords = ["wrenai", "wren", "sql", "semantic", "semantic-layer", "mdl", "datafusion", "data-modeling", "analytics", "database", "cli", "sdk", "python"]
+authors = [{ name = "Ontology Engine" }]
+keywords = ["ontology", "sql", "semantic", "semantic-layer", "mdl", "datafusion", "data-modeling", "analytics", "database", "cli", "sdk", "python"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -64,18 +64,17 @@ memory = ["lancedb>=0.6", "sentence-transformers>=3.0.0"]
 interactive = ["InquirerPy>=0.3.4"]
 ui = ["starlette>=1.3.1", "uvicorn>=0.29", "jinja2>=3.1", "python-multipart>=0.0.31"]
 mcp = ["mcp[cli]>=1.19"]
-main = ["wrenai[interactive,ui]"]
+main = ["ontology-cli[interactive,ui]"]
 all = [
-  "wrenai[postgres,mysql,bigquery,snowflake,clickhouse,trino,mssql,databricks,redshift,athena,oracle,spark,main,memory,mcp]",
+  "ontology-cli[postgres,mysql,bigquery,snowflake,clickhouse,trino,mssql,databricks,redshift,athena,oracle,spark,main,memory,mcp]",
 ]
 
 [project.scripts]
-wren = "wren.cli:app"
+ontology = "wren.cli:app"
 
 [project.urls]
-Homepage = "https://getwren.ai"
-Repository = "https://github.com/Canner/WrenAI"
-Issues = "https://github.com/Canner/WrenAI/issues"
+Homepage = "https://github.com/yanjin734-ltsm/ontology"
+Repository = "https://github.com/yanjin734-ltsm/ontology"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wren"]

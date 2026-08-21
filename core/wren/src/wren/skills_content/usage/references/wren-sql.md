@@ -1,6 +1,6 @@
 # Wren SQL — How CTE-Based Modeling Works
 
-Wren Engine rewrites your SQL by injecting CTEs (Common Table Expressions) that expand each MDL model into its underlying database query. Understanding this mechanism helps you diagnose errors and write correct SQL.
+Ontology Engine rewrites your SQL by injecting CTEs (Common Table Expressions) that expand each MDL model into its underlying database query. Understanding this mechanism helps you diagnose errors and write correct SQL.
 
 ---
 
@@ -67,7 +67,7 @@ The CTE named `"orders"` shadows the model name, so the rest of your SQL runs ag
 ### Step 1 — Run dry-plan
 
 ```bash
-wren dry-plan --sql "SELECT o_custkey, SUM(o_totalprice) FROM orders GROUP BY 1"
+ontology dry-plan --sql "SELECT o_custkey, SUM(o_totalprice) FROM orders GROUP BY 1"
 ```
 
 ### Step 2 — Interpret the result
@@ -75,8 +75,8 @@ wren dry-plan --sql "SELECT o_custkey, SUM(o_totalprice) FROM orders GROUP BY 1"
 | dry-plan result | Meaning | Fix |
 |-----------------|---------|-----|
 | **Succeeds** with valid SQL | MDL layer is fine; if execution fails, the database rejects the translated SQL | Read the DB error against the dry-plan output — the issue is in the generated SQL or DB state |
-| **Fails** with "No model references found" | Your FROM clause doesn't match any MDL model name | Check model names: `wren memory fetch -q "<name>" --type model --threshold 0` |
-| **Fails** with column error | A column you referenced doesn't exist in the model | Check columns: `wren memory fetch -q "<col>" --model <name> --threshold 0` |
+| **Fails** with "No model references found" | Your FROM clause doesn't match any MDL model name | Check model names: `ontology memory fetch -q "<name>" --type model --threshold 0` |
+| **Fails** with column error | A column you referenced doesn't exist in the model | Check columns: `ontology memory fetch -q "<col>" --model <name> --threshold 0` |
 | **Fails** with qualify error | sqlglot can't resolve an ambiguous or unknown column | Qualify the column explicitly: `model_name.column_name` |
 
 ### Step 3 — Compare dry-plan output with DB error
@@ -85,10 +85,10 @@ When execution fails but dry-plan succeeds, compare them side by side:
 
 ```bash
 # Get the expanded SQL
-wren dry-plan --sql "SELECT ..." 2>&1
+ontology dry-plan --sql "SELECT ..." 2>&1
 
 # Run against DB and capture the error
-wren --sql "SELECT ..." 2>&1
+ontology --sql "SELECT ..." 2>&1
 ```
 
 Common patterns:
@@ -111,7 +111,7 @@ If the rewriter detects no model references in your SQL (e.g. `SELECT 1` or quer
 
 ## Cube query SQL generation
 
-`wren cube query` doesn't execute SQL directly — it produces SQL from a
+`ontology cube query` doesn't execute SQL directly — it produces SQL from a
 structured CubeQuery input and hands it to the engine. Inspecting
 `--sql-only` output is how an agent reverse-engineers cube expansion logic.
 
@@ -148,8 +148,8 @@ LIMIT 100
 
 ### Diagnosing cube SQL errors
 
-1. `wren cube query --sql-only ...` to inspect the generated SQL.
-2. If the SQL looks reasonable, run `wren cube query ...` (drop `--sql-only`).
+1. `ontology cube query --sql-only ...` to inspect the generated SQL.
+2. If the SQL looks reasonable, run `ontology cube query ...` (drop `--sql-only`).
 3. If the execution error is "unknown column / table", the cube YAML's
    `expression` is likely wrong — not the translator.
 4. If translation itself fails (e.g., cyclic measure), the error is raised

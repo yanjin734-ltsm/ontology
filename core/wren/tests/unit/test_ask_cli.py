@@ -1,4 +1,4 @@
-"""Tests for `wren ask` prompt shaping."""
+"""Tests for `ontology ask` prompt shaping."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def test_guided_includes_task_flow_and_substitutes_prompt():
     assert result.exit_code == 0
     assert "TASK TYPE A" in result.output
     assert "TASK TYPE B" in result.output
-    assert "wren context show" in result.output
+    assert "ontology context show" in result.output
     assert "top 5 customers by revenue" in result.output
     assert "<USER_PROMPT>" not in result.output  # placeholder substituted
 
@@ -38,8 +38,8 @@ def test_guided_includes_task_flow_and_substitutes_prompt():
 def test_direct_minimal_and_substitutes_prompt():
     result = runner.invoke(app, ["ask", "monthly orders trend", "--direct"])
     assert result.exit_code == 0
-    assert "wren skills list" in result.output
-    assert "wren --help" in result.output
+    assert "ontology skills list" in result.output
+    assert "ontology --help" in result.output
     assert "monthly orders trend" in result.output
     assert "<USER_PROMPT>" not in result.output
     # direct mode should NOT include the guided TASK TYPE structure
@@ -59,16 +59,16 @@ def test_render_unknown_mode_raises():
 
 
 def test_guided_recall_step_uses_a_real_cli_option():
-    # The guided template's step 2 must emit an option `wren memory recall`
+    # The guided template's step 2 must emit an option `ontology memory recall`
     # actually accepts. Regression for #2503: the template said `--nl`, an
-    # option that belongs to `wren memory store`, not `recall`.
+    # option that belongs to `ontology memory store`, not `recall`.
     result = runner.invoke(app, ["ask", "x", "--guided"])
     assert "--nl" not in result.output
 
     recall_line = next(
-        line for line in result.output.splitlines() if "wren memory recall" in line
+        line for line in result.output.splitlines() if "ontology memory recall" in line
     )
-    args = recall_line.split("wren memory recall", 1)[1].split("#", 1)[0].split()
+    args = recall_line.split("ontology memory recall", 1)[1].split("#", 1)[0].split()
     recall_result = runner.invoke(app, ["memory", "recall", *args])
     # A bad option is a click usage error (exit code 2, "No such option").
     # Any other exit code means the option parsed and the command moved on

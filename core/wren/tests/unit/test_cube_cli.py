@@ -1,4 +1,4 @@
-"""Unit tests for the `wren cube` CLI sub-app."""
+"""Unit tests for the `ontology cube` CLI sub-app."""
 
 from __future__ import annotations
 

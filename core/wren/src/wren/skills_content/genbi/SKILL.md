@@ -1,15 +1,15 @@
 ---
 name: genbi
-description: "Turn a Wren project's context layer into a shareable, browser-side GenBI web app and deploy it to the user's Vercel or Cloudflare account. Orchestrates the full flow: `wren genbi build` returns a project-hydrated build instruction, the agent authors the app from scratch into apps/<name>/, then register → verify → deploy produce a shareable URL. Use this skill whenever the user wants to: build a dashboard from their Wren project, make a shareable analytics app, deploy their context layer as a web app, host a GenBI app on Vercel or Cloudflare Pages, or asks for a 'genbi app'."
+description: "Turn an Ontology Engine project's context layer into a shareable, browser-side GenBI web app and deploy it to the user's Vercel or Cloudflare account. Orchestrates the full flow: `ontology genbi build` returns a project-hydrated build instruction, the agent authors the app from scratch into apps/<name>/, then register → verify → deploy produce a shareable URL. Use this skill whenever the user wants to: build a dashboard from their Ontology Engine project, make a shareable analytics app, deploy their context layer as a web app, host a GenBI app on Vercel or Cloudflare Pages, or asks for a 'genbi app'."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 
 # Wren GenBI App — Agent Workflow Guide
 
-> This guide is served by the `wren` CLI (`wren skills get genbi`), so it
-> always matches your installed wrenai version.
+> This guide is served by the `ontology` CLI (`ontology skills get genbi`), so it
+> always matches your installed ontology-cli version.
 
 Turn a Wren context layer into a shareable GenBI app — from a natural-language
 request to a public URL in one conversation.
@@ -17,16 +17,16 @@ request to a public URL in one conversation.
 **Division of labor:** the CLI owns the authoritative build instruction (it
 knows the live project facts and the pinned `wren-core-wasm` version) and all
 deterministic state (index, verify, deploy). You — the agent — author the app
-code by following the instruction. Never hand-write `.wren/apps.yml`.
+code by following the instruction. Never hand-write `.ontology/apps.yml`.
 
 ## Preconditions
 
-1. A Wren project is discoverable (`wren_project.yml` in cwd/ancestors, or ask
+1. A Ontology Engine project is discoverable (`wren_project.yml` in cwd/ancestors, or ask
    for the path and pass `-p`).
-2. The context layer exists. If `target/mdl.json` is missing, `wren genbi
+2. The context layer exists. If `target/mdl.json` is missing, `ontology genbi
    build` compiles it implicitly — no separate step needed.
-3. `wren` CLI ≥ the version that ships the `genbi` command group
-   (`wren genbi --help` works).
+3. `ontology` CLI ≥ the version that ships the `genbi` command group
+   (`ontology genbi --help` works).
 
 ## Workflow
 
@@ -45,7 +45,7 @@ code by following the instruction. Never hand-write `.wren/apps.yml`.
 ### 2. Get the build instruction
 
 ```bash
-wren genbi build <name> --prompt "<the user's request, verbatim>" --data-mode <mode>
+ontology genbi build <name> --prompt "<the user's request, verbatim>" --data-mode <mode>
 ```
 
 For long or multi-line prompts use `--prompt-file <file>` or pipe to
@@ -83,7 +83,7 @@ be exported into the app folder — that step is yours.
   skill — its pipelines always land in a `.duckdb` file): the project's DuckDB
   file *is* your snapshot source. If the user is connecting SaaS data (HubSpot,
   Stripe, Salesforce, …) and has no project yet, run the SaaS→project flow
-  first: `wren skills get dlt-connector`. Then come back here to ship it.
+  first: `ontology skills get dlt-connector`. Then come back here to ship it.
 - **Warehouse-backed project** (Postgres, BigQuery, Snowflake, …): run the
   query/queries the dashboard needs through the MDL layer and write the result
   to parquet. Keep snapshots small — snapshot mode is for demos/reports, not
@@ -109,18 +109,18 @@ copied in keeps the context layer intact regardless of how you bundle data.
 ### 4. Register and verify
 
 ```bash
-wren genbi register <name> --data-mode <mode>
-wren genbi verify <name>
+ontology genbi register <name> --data-mode <mode>
+ontology genbi verify <name>
 ```
 
 If verify fails: fix the reported problems and re-run verify. Do NOT proceed
-to deploy on a failed verify. Offer `wren genbi open <name>` for a local
+to deploy on a failed verify. Offer `ontology genbi open <name>` for a local
 preview before shipping.
 
 ### 5. Deploy (only if the user asked for it)
 
 ```bash
-wren genbi deploy <name> --provider vercel      # or cloudflare
+ontology genbi deploy <name> --provider vercel      # or cloudflare
 ```
 
 - Preview deployment by default. **Confirm with the user before `--prod`.**
@@ -148,7 +148,7 @@ URL is just gated.
 - To make the app publicly shareable, the user disables it in the Vercel
   dashboard: **Project → Settings → Deployment Protection → Vercel
   Authentication → Disabled** (or scope it to production only). This setting
-  is not controllable from `wren genbi deploy`; it's a one-time toggle per
+  is not controllable from `ontology genbi deploy`; it's a one-time toggle per
   project in Vercel.
 - If the user only needs a private link (viewable while logged into their
   Vercel account), leaving protection on is fine — just tell them the link
@@ -163,16 +163,16 @@ URL is just gated.
   you shouldn't have written in the first place.
 - Never pass tokens as CLI flags; they leak into shell history.
 - Confirm before production deploys.
-- All index state goes through `wren genbi register/remove` — never edit
-  `.wren/apps.yml` by hand.
+- All index state goes through `ontology genbi register/remove` — never edit
+  `.ontology/apps.yml` by hand.
 
 ## Quick reference
 
 | Step | Command |
 | --- | --- |
-| Get build instruction | `wren genbi build <name> --prompt "…" [--data-mode snapshot\|live]` |
-| Record the app | `wren genbi register <name> --data-mode <mode>` |
-| Preflight | `wren genbi verify <name>` |
-| Local preview | `wren genbi open <name>` |
-| Ship | `wren genbi deploy <name> --provider vercel\|cloudflare [--prod]` |
-| Inventory | `wren genbi list` / `wren genbi remove <name>` |
+| Get build instruction | `ontology genbi build <name> --prompt "…" [--data-mode snapshot\|live]` |
+| Record the app | `ontology genbi register <name> --data-mode <mode>` |
+| Preflight | `ontology genbi verify <name>` |
+| Local preview | `ontology genbi open <name>` |
+| Ship | `ontology genbi deploy <name> --provider vercel\|cloudflare [--prod]` |
+| Inventory | `ontology genbi list` / `ontology genbi remove <name>` |

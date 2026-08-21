@@ -1,9 +1,9 @@
-"""Guard: every `wren <cmd>` mentioned in bundled skill/docs/template content
+"""Guard: every `ontology <cmd>` mentioned in bundled skill/docs/template content
 must resolve to a real CLI command (and `--flags` mentioned must be real flags
 on that command).
 
 This catches the "forward reference" failure mode we hit during incremental
-rollout — e.g., a lifted skill mentioning `wren docs get` before that command
+rollout — e.g., a lifted skill mentioning `ontology docs get` before that command
 exists. By the time the branch is ready to ship, every command and flag the
 served content tells an agent to run must actually exist in the CLI.
 """
@@ -28,10 +28,12 @@ pytestmark = pytest.mark.unit
 def _flags(cmd) -> set[str]:
     flags: set[str] = set()
     for param in getattr(cmd, "params", []):
-        if isinstance(param, click.Option):
-            for opt in param.opts + param.secondary_opts:
-                if opt.startswith("--"):
-                    flags.add(opt)
+        opts = list(getattr(param, "opts", [])) + list(
+            getattr(param, "secondary_opts", [])
+        )
+        for opt in opts:
+            if opt.startswith("--"):
+                flags.add(opt)
     return flags
 
 
@@ -44,15 +46,15 @@ def _walk(cmd, prefix: str = "") -> dict[str, set[str]]:
     map to the root command and neuter the guard.
     """
     out: dict[str, set[str]] = {prefix.strip(): _flags(cmd)}
-    if isinstance(cmd, click.Group):
-        for name, sub in cmd.commands.items():
-            out.update(_walk(sub, f"{prefix} {name}".strip()))
+    children = getattr(cmd, "commands", None) or {}
+    for name, sub in children.items():
+        out.update(_walk(sub, f"{prefix} {name}".strip()))
     return out
 
 
 COMMANDS: dict[str, set[str]] = _walk(typer.main.get_command(app))
 
-# ``wren memory`` is conditionally registered (needs `wrenai[memory]`
+# ``ontology memory`` is conditionally registered (needs `ontology-cli[memory]`
 # extras). It's a real public surface; bundled content correctly references
 # it. Allow-list its subcommands so this guard doesn't flag false positives
 # when the test env lacks memory extras.
@@ -76,12 +78,12 @@ for _s in _MEMORY_SUBCOMMANDS:
 # Typer/Click adds these to every command implicitly.
 _UNIVERSAL_FLAGS = {"--help"}
 
-# The first token after `wren` must be one of these (commands or top-level
+# The first token after `ontology` must be one of these (commands or top-level
 # flags) for the snippet to count as a CLI invocation worth validating. Otherwise
-# it's prose ("the wren engine connects to ...", "in the wren project layout").
+# it's prose ("the engine connects to ...", "in the project layout").
 _TOP_LEVEL_COMMANDS: set[str] = {p.split()[0] for p in COMMANDS if p}
 
-# Flags on `wren memory ...` cannot be introspected here without the memory
+# Flags on `ontology memory ...` cannot be introspected here without the memory
 # extras installed (lancedb + sentence-transformers). Skip flag validation for
 # memory commands; the command path itself is still validated via the
 # allow-list above.
@@ -95,12 +97,12 @@ _SKILLS_CONTENT = _REPO / "core" / "wren" / "src" / "wren" / "skills_content"
 _DOCS_CONTENT = _REPO / "core" / "wren" / "src" / "wren" / "docs_content"
 _ASK_TEMPLATES = _REPO / "core" / "wren" / "src" / "wren" / "ask_templates"
 # The discovery stub ships to users' local skill dirs via `npx skills add`,
-# so any `wren <cmd>` it references must resolve to a real CLI command too.
-_DISCOVERY_STUB = _REPO / "skills" / "wren" / "SKILL.md"
+# so any `ontology <cmd>` it references must resolve to a real CLI command too.
+_DISCOVERY_STUB = _REPO / "skills" / "ontology" / "SKILL.md"
 
-# Match `wren ` followed by content up to a newline, backtick, single/double
+# Match `ontology ` followed by content up to a newline, backtick, single/double
 # quote (avoid consuming SQL strings), or closing paren.
-_INVOCATION = re.compile(r"\bwren\s+(?P<rest>[^\n`'\"\)]+)")
+_INVOCATION = re.compile(r"\bontology\s+(?P<rest>[^\n`'\"\)]+)")
 
 # A valid command-name token: lowercase alphanumerics + hyphens.
 _TOKEN = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -110,7 +112,7 @@ def _iter_content_files() -> list[Path]:
     """Yield every served-content file the guard must validate.
 
     Covers the package-data roots (`skills_content`, `ask_templates`) plus
-    the standalone discovery stub at `skills/wren/` that's distributed to
+    the standalone discovery stub at `skills/ontology/` that's distributed to
     users via `npx skills add`. (`docs_content` is kept in the scan list as
     a no-op — the dir no longer ships, so it's skipped when absent.)
     """
@@ -127,12 +129,12 @@ def _iter_content_files() -> list[Path]:
 
 
 def _enumerate_invocations() -> list[tuple[Path, str, list[str]]]:
-    """Return (file, raw_snippet, tokens) for every wren invocation in served content."""
+    """Return (file, raw_snippet, tokens) for every ontology invocation in served content."""
     out: list[tuple[Path, str, list[str]]] = []
     for path in _iter_content_files():
         text = path.read_text(encoding="utf-8")
         # Join shell backslash-newline continuations so flags on follow-up
-        # lines (e.g. `wren cube query \\\n  --measures revenue`) are part
+        # lines (e.g. `ontology cube query \\\n  --measures revenue`) are part
         # of the same captured invocation rather than silently dropped.
         text = re.sub(r"\\\s*\n[ \t]*", " ", text)
         for m in _INVOCATION.finditer(text):
@@ -172,7 +174,7 @@ def _findings() -> list[str]:
     for path, snippet, tokens in _enumerate_invocations():
         first = tokens[0]
         # Only treat as a CLI invocation if first token is a known top-level
-        # command/group OR a top-level flag (e.g. `wren --sql ...`). Otherwise
+        # command/group OR a top-level flag (e.g. `ontology --sql ...`). Otherwise
         # it's prose ("the wren engine", "in the wren project layout") — skip.
         if not first.startswith("-") and first not in _TOP_LEVEL_COMMANDS:
             continue
@@ -186,7 +188,7 @@ def _findings() -> list[str]:
         # Unknown-subcommand check. If `cmd_path` resolved to a group node
         # (has at least one child registered in COMMANDS) and the first
         # leftover token is a plain word, that word is an unknown
-        # subcommand the user typo'd — `wren docs typo`, `wren memory typo`.
+        # subcommand the user typo'd — `ontology docs typo`, `ontology memory typo`.
         # On a leaf command (`skills get`, `docs get`) leftover words are
         # positional args, not typos, so the children gate skips them.
         # Runs before _SKIP_FLAG_VALIDATION_FOR_GROUPS so typos under
@@ -197,8 +199,8 @@ def _findings() -> list[str]:
             and any(p.startswith(f"{cmd_path} ") for p in COMMANDS if cmd_path)
         ):
             problems.append(
-                f"{rel}: unknown subcommand '{leftover[0]}' for 'wren {cmd_path}'"
-                + f"  (in `wren {snippet}`)"
+                f"{rel}: unknown subcommand '{leftover[0]}' for 'ontology {cmd_path}'"
+                + f"  (in `ontology {snippet}`)"
             )
             continue
 
@@ -218,8 +220,8 @@ def _findings() -> list[str]:
             allowed = COMMANDS.get(cmd_path, set())
             if flag not in allowed:
                 problems.append(
-                    f"{rel}: unknown flag '{flag}' for 'wren {cmd_path}'".rstrip()
-                    + f"  (in `wren {snippet}`)"
+                    f"{rel}: unknown flag '{flag}' for 'ontology {cmd_path}'".rstrip()
+                    + f"  (in `ontology {snippet}`)"
                 )
     return problems
 
@@ -256,21 +258,21 @@ def test_at_least_one_invocation_was_validated():
     # scanner that silently dropped most matches would weaken the guard
     # without obviously failing — keep the floor tight enough to notice.
     assert len(invocations) >= 200, (
-        f"only found {len(invocations)} wren invocations; regex may be broken"
+        f"only found {len(invocations)} ontology invocations; regex may be broken"
     )
 
 
 def test_unknown_subcommand_is_flagged(tmp_path, monkeypatch):
-    """An unknown subcommand under a known group (`wren docs typo`) must
-    be reported. Leaf commands taking positional args (`wren skills get
+    """An unknown subcommand under a known group (`ontology docs typo`) must
+    be reported. Leaf commands taking positional args (`ontology skills get
     usage`) must NOT be flagged. Typos under `memory` must also be caught
     even though flag validation is skipped for memory.
     """
     fake_skill = tmp_path / "skill.md"
     fake_skill.write_text(
-        "Run `wren docs typo` to break stuff.\n"
-        "Also `wren skills get usage` — this is legit (positional, not typo).\n"
-        "And `wren memory typo` — should also be flagged.\n",
+        "Run `ontology docs typo` to break stuff.\n"
+        "Also `ontology skills get usage` — this is legit (positional, not typo).\n"
+        "And `ontology memory typo` — should also be flagged.\n",
         encoding="utf-8",
     )
 
@@ -282,7 +284,7 @@ def test_unknown_subcommand_is_flagged(tmp_path, monkeypatch):
 
     problems = _findings()
     joined = "\n".join(problems)
-    assert "unknown subcommand 'typo' for 'wren docs'" in joined, problems
-    assert "unknown subcommand 'typo' for 'wren memory'" in joined, problems
+    assert "unknown subcommand 'typo' for 'ontology docs'" in joined, problems
+    assert "unknown subcommand 'typo' for 'ontology memory'" in joined, problems
     # leaf + positional should NOT appear
     assert "'usage'" not in joined, problems

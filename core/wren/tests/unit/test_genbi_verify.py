@@ -1,4 +1,4 @@
-"""Behavior tests for `wren genbi verify` and `wren genbi open`."""
+"""Behavior tests for `ontology genbi verify` and `ontology genbi open`."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ def _make_project_with_app(
 
 
 def _status(project: Path) -> str:
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     return index["apps"]["myapp"]["status"]
 
 

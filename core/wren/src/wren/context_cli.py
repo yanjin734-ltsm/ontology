@@ -1,4 +1,4 @@
-"""Typer sub-app for ``wren context`` commands."""
+"""Typer sub-app for ``ontology context`` commands."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ ProjectPathOpt = Annotated[
     typer.Option(
         "--path",
         "-p",
-        help="Project directory. Auto-detected via WREN_PROJECT_HOME, cwd walk, or ~/.wren/config.yml.",
+        help="Project directory. Auto-detected via ONTOLOGY_PROJECT_HOME, cwd walk, or ~/.ontology/config.yml.",
     ),
 ]
 
@@ -145,8 +145,8 @@ def import_cmd(
         return
 
     typer.echo("\nNext steps:")
-    typer.echo(f"  wren context validate --path {output_path}")
-    typer.echo(f"  wren context build --path {output_path}")
+    typer.echo(f"  ontology context validate --path {output_path}")
+    typer.echo(f"  ontology context build --path {output_path}")
 
 
 @context_app.command()
@@ -195,7 +195,7 @@ def init(
 
     With --from-osi: migrates from an OSI semantic_model file. Use this when
     you want to leave the OSI flow and own the YAML going forward; for
-    keeping OSI as the source of truth, use ``wren context build --from-osi``
+    keeping OSI as the source of truth, use ``ontology context build --from-osi``
     instead.
     """
     if from_mdl and from_osi:
@@ -246,8 +246,8 @@ def init(
             f"  {model_count} models, {view_count} views, {rel_count} relationships"
         )
         typer.echo("\nNext steps:")
-        typer.echo(f"  wren context validate --path {project_path}")
-        typer.echo(f"  wren context build --path {project_path}")
+        typer.echo(f"  ontology context validate --path {project_path}")
+        typer.echo(f"  ontology context build --path {project_path}")
         return
 
     # ── Scaffold empty project (existing behavior) ────────────
@@ -275,7 +275,7 @@ def init(
         "name: my_project\n"
         'version: "1.0"\n'
         "\n"
-        "# Wren Engine namespace (NOT your database's catalog/schema).\n"
+        "# Ontology Engine namespace (NOT your database's catalog/schema).\n"
         "# These identify this MDL project within the engine.\n"
         "# Your database's actual catalog/schema goes in each model's table_reference.\n"
         "catalog: wren\n"
@@ -358,7 +358,7 @@ def init(
     # ── AGENTS.md ──
     (project_path / "AGENTS.md").write_text(_AGENTS_MD_TEMPLATE)
 
-    # NL→SQL pairs live in knowledge/sql/ (written by `wren memory store`),
+    # NL→SQL pairs live in knowledge/sql/ (written by `ontology memory store`),
     # so no queries.yml is scaffolded.
 
     typer.echo(f"Wren project initialized: {project_path}")
@@ -379,12 +379,12 @@ def init(
         "  knowledge/sql/              — confirmed NL-SQL pairs (wren memory store)"
     )
     typer.echo("  AGENTS.md                   — AI agent workflow guidance")
-    # A pre-existing legacy queries.yml is still auto-loaded by `wren memory
+    # A pre-existing legacy queries.yml is still auto-loaded by `ontology memory
     # index`; surface it so v4 and v5 pair sources don't silently mix.
     if (project_path / "queries.yml").exists():
         typer.echo(
             "Note: a legacy queries.yml is present. It's still loaded on "
-            "`wren memory index`, but is deprecated — migrate its pairs into "
+            "`ontology memory index`, but is deprecated — migrate its pairs into "
             "knowledge/sql/ (see the migration reference).",
             err=True,
         )
@@ -393,7 +393,7 @@ def init(
         "Next: Install agent skills via "
         "`curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash`, "
         "then use the `wren-generate-mdl` skill in your agent to populate models/"
-        " (or edit them manually). Run `wren context build` when done."
+        " (or edit them manually). Run `ontology context build` when done."
     )
 
 
@@ -513,8 +513,8 @@ def validate(
             if profile_pin.strip() not in registered:
                 sem_warnings.append(
                     f"project pins profile '{profile_pin}' but it doesn't "
-                    "exist in ~/.wren/profiles.yml. "
-                    "Run `wren context set-profile <name>` to rebind."
+                    "exist in ~/.ontology/profiles.yml. "
+                    "Run `ontology context set-profile <name>` to rebind."
                 )
 
     if sem_errors:
@@ -540,8 +540,8 @@ def validate(
         typer.echo(
             "\nNote: no profile bound to this project. Connection will fall "
             "back to the\n"
-            "  globally active profile in ~/.wren/profiles.yml.\n"
-            "  Run `wren context set-profile <name>` to pin one explicitly."
+            "  globally active profile in ~/.ontology/profiles.yml.\n"
+            "  Run `ontology context set-profile <name>` to pin one explicitly."
         )
 
     if has_hard_error or (strict and has_warning):
@@ -663,14 +663,14 @@ def build(
     n_views = len(manifest_json.get("views", []))
     typer.echo(f"Built: {n_models} models, {n_views} views → {out_path}")
     typer.echo("")
-    typer.echo("Next: wren --sql 'SELECT ...' to query your data.")
+    typer.echo("Next: ontology --sql 'SELECT ...' to query your data.")
     # Soft nudge toward semantic memory once the schema crosses the threshold
     # where embedding search starts to pay off.
     if n_models >= 200:
         typer.echo(
             f"\nYour schema has {n_models} models — consider enabling semantic memory:\n"
-            '  pip install "wrenai[memory]"\n'
-            "  wren memory index"
+            '  pip install "ontology-cli[memory]"\n'
+            "  ontology memory index"
         )
 
 
@@ -770,7 +770,7 @@ def show(
             )
 
         if not models and not views:
-            typer.echo("Empty project. Run `wren context init` to get started.")
+            typer.echo("Empty project. Run `ontology context init` to get started.")
 
 
 @context_app.command()
@@ -828,7 +828,7 @@ def set_profile(
     if not (project_path / PROJECT_FILE).exists():
         typer.echo(
             f"Error: no {PROJECT_FILE} found at {project_path}.\n"
-            "  Run `wren context init` to scaffold a project first.",
+            "  Run `ontology context init` to scaffold a project first.",
             err=True,
         )
         raise typer.Exit(1)
@@ -837,7 +837,7 @@ def set_profile(
         profiles = list_profiles()
     except Exception as exc:
         typer.echo(
-            f"Error: could not read ~/.wren/profiles.yml: {exc}",
+            f"Error: could not read ~/.ontology/profiles.yml: {exc}",
             err=True,
         )
         raise typer.Exit(1)
@@ -845,9 +845,9 @@ def set_profile(
     if name not in profiles:
         avail = ", ".join(sorted(profiles)) or "(none)"
         typer.echo(
-            f"Error: profile '{name}' not found in ~/.wren/profiles.yml.\n"
+            f"Error: profile '{name}' not found in ~/.ontology/profiles.yml.\n"
             f"  Available profiles: {avail}\n"
-            f"  Run `wren profile add {name} --datasource <ds>` to create it.",
+            f"  Run `ontology profile add {name} --datasource <ds>` to create it.",
             err=True,
         )
         raise typer.Exit(1)
@@ -856,7 +856,7 @@ def set_profile(
     if not new_ds:
         typer.echo(
             f"Error: profile '{name}' has no datasource field. "
-            "Edit ~/.wren/profiles.yml or recreate it via `wren profile add`.",
+            "Edit ~/.ontology/profiles.yml or recreate it via `ontology profile add`.",
             err=True,
         )
         raise typer.Exit(1)
@@ -887,7 +887,7 @@ def set_profile(
     # against the new connection until the user rebuilds.
     if old_ds and old_ds != new_ds and (project_path / "target" / "mdl.json").exists():
         typer.echo(
-            f"\n⚠ MDL was built for {old_ds}. Run `wren context build` "
+            f"\n⚠ MDL was built for {old_ds}. Run `ontology context build` "
             "to regenerate before querying."
         )
 
@@ -976,7 +976,7 @@ def upgrade(
             f"  * {f} (schema_version {result.from_version} -> {result.to_version})"
         )
 
-    typer.echo("\nUpgrade complete. Run `wren context validate` to check the result.")
+    typer.echo("\nUpgrade complete. Run `ontology context validate` to check the result.")
 
 
 # ── OSI source helpers ────────────────────────────────────────────────────
@@ -1062,8 +1062,8 @@ def _init_from_osi(
         )
 
     typer.echo("\nNext steps:")
-    typer.echo(f"  wren context validate --path {project_path}")
-    typer.echo(f"  wren context build --path {project_path}")
+    typer.echo(f"  ontology context validate --path {project_path}")
+    typer.echo(f"  ontology context build --path {project_path}")
 
 
 def _build_from_osi(

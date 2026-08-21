@@ -1,10 +1,10 @@
-# Wren Engine — Agent Skill Distribution
+# Ontology Engine — Agent Skill Distribution
 
 The actual skill content (workflow guides, reference docs, prompt helpers)
-**lives inside the `wren` CLI**. This directory ships a single discovery stub
+**lives inside the `ontology` CLI**. This directory ships a single discovery stub
 that an AI client installs once; the stub then tells the agent to fetch
 everything else from the CLI at runtime (so content always matches the
-installed wrenai version).
+installed ontology-cli version).
 
 See [`SKILLS.md`](SKILLS.md) for the full design and command surface.
 
@@ -13,7 +13,7 @@ See [`SKILLS.md`](SKILLS.md) for the full design and command surface.
 ### The CLI itself (where all skill content lives)
 
 ```bash
-pip install wrenai
+pip install ontology-cli
 ```
 
 ### The discovery stub (so an AI client knows the CLI exists)
@@ -21,14 +21,14 @@ pip install wrenai
 #### Option 1 — Claude Code plugin
 
 ```text
-/plugin marketplace add Canner/WrenAI --path skills
-/plugin install wren@wren
+# public marketplace not published yet; install from this local clone
+bash skills/install.sh
 ```
 
 #### Option 2 — `npx skills`
 
 ```bash
-npx skills add Canner/WrenAI
+# not published; use bash skills/install.sh from this clone
 ```
 
 The installer auto-detects your AI client. To target a specific one, add
@@ -43,17 +43,17 @@ bash skills/install.sh --force         # overwrite existing
 
 ## What the agent does with the stub
 
-Once installed, the agent reads `wren/SKILL.md` and learns to call:
+Once installed, the agent reads `ontology/SKILL.md` and learns to call:
 
 ```bash
-wren skills list                        # discover workflow guides
-wren skills get onboarding              # fetch a guide (one of 5 names)
-wren docs connection-info <ds>          # connection fields for a data source
-wren ask "<question>" --guided|--direct # wrap a prompt for an agent
+ontology skills list                        # discover workflow guides
+ontology skills get onboarding              # fetch a guide (one of 5 names)
+ontology docs connection-info <ds>          # connection fields for a data source
+ontology ask "<question>" --guided|--direct # wrap a prompt for an agent
 ```
 
 ## Requirements
 
-- `wren` CLI installed (`pip install wrenai` or `pip install "wrenai[<extras>]"`)
-- A database connection (configured via `wren profile add`)
+- `ontology` CLI installed (`pip install ontology-cli` or `pip install "ontology-cli[<extras>]"`)
+- A database connection (configured via `ontology profile add`)
 - An AI client that supports skills (Claude Code, Cursor, Cline, etc.)

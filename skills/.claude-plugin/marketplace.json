@@ -5,13 +5,13 @@
     "email": "dev@cannerdata.com"
   },
   "metadata": {
-    "description": "Wren Engine — discovery stub for AI agents. Actual workflow guides and prompt helpers ship inside the wren CLI (pip install wrenai) and are served by `wren skills get` / `wren ask`."
+    "description": "Ontology Engine — discovery stub for AI agents. Actual workflow guides and prompt helpers ship inside the ontology CLI (pip install ontology-cli) and are served by `ontology skills get` / `ontology ask`."
   },
   "plugins": [
     {
       "name": "wren",
       "source": ".",
-      "description": "Wren CLI for AI agents — semantic SQL over 22+ databases. Installs a single discovery stub that points the agent at the wren CLI for all workflow content.",
+      "description": "Ontology Engine CLI for AI agents — semantic SQL over 22+ databases. Installs a single discovery stub that points the agent at the ontology CLI for all workflow content.",
       "version": "1.0.0",
       "keywords": [
         "wren",

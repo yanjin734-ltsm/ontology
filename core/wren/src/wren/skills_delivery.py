@@ -1,8 +1,8 @@
 """Serve bundled agent skill content from package data.
 
 Skill content ships inside the wheel under ``wren/skills_content/<name>/``.
-``wren skills get <name>`` returns the skill's ``SKILL.md`` main guide. Deeper
-``references/`` and bundled ``scripts/`` are surfaced by ``wren skills list``
+``ontology skills get <name>`` returns the skill's ``SKILL.md`` main guide. Deeper
+``references/`` and bundled ``scripts/`` are surfaced by ``ontology skills list``
 and (in a follow-up slice) delivered via ``--full`` / ``--script``.
 """
 
@@ -33,7 +33,7 @@ class SkillInfo:
 
 
 def _content_root():
-    """Traversable for ``wren/skills_content/`` (anchored on the ``wren`` package)."""
+    """Traversable for ``wren/skills_content/`` (anchored on the ``ontology`` package)."""
     return resources.files("wren") / _CONTENT_DIR
 
 

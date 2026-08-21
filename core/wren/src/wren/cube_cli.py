@@ -1,4 +1,4 @@
-"""Typer sub-app for ``wren cube`` commands."""
+"""Typer sub-app for ``ontology cube`` commands."""
 
 from __future__ import annotations
 
@@ -271,7 +271,7 @@ def query(
     Build the query from CLI flags (``--cube`` / ``--measures`` / …) or load
     it from JSON via ``--from <file|->``. The CubeQuery is translated to
     SQL by wren-core, then executed through WrenEngine just like a regular
-    ``wren query``.
+    ``ontology query``.
     """
     if from_json:
         cube_query = _load_cube_query_from(from_json)

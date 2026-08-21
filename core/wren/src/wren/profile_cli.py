@@ -1,4 +1,4 @@
-"""Typer sub-app for ``wren profile`` commands."""
+"""Typer sub-app for ``ontology profile`` commands."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import yaml
 
 profile_app = typer.Typer(
     name="profile",
-    help="Manage connection profiles (~/.wren/profiles.yml).",
+    help="Manage connection profiles (~/.ontology/profiles.yml).",
 )
 
 
@@ -26,7 +26,7 @@ def list_cmd() -> None:
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1)
     if not profiles:
-        typer.echo("No profiles configured. Run `wren profile add` to create one.")
+        typer.echo("No profiles configured. Run `ontology profile add` to create one.")
         return
     for name, conf in profiles.items():
         marker = " *" if name == active else ""
@@ -78,8 +78,8 @@ def add(
 
     The saved profile is validated against its database by default — a
     failed validation is reported as a warning without deleting the
-    profile, so the user can fix it with ``wren profile add --ui`` or
-    by editing ``~/.wren/profiles.yml``.
+    profile, so the user can fix it with ``ontology profile add --ui`` or
+    by editing ``~/.ontology/profiles.yml``.
     """
     from wren.profile import add_profile  # noqa: PLC0415
 
@@ -161,7 +161,7 @@ def add(
         profile_data = {"datasource": datasource}
         typer.echo(
             f"Created minimal profile '{name}' with datasource={datasource}. "
-            "Edit ~/.wren/profiles.yml to add connection fields."
+            "Edit ~/.ontology/profiles.yml to add connection fields."
         )
         minimal = True
 
@@ -292,14 +292,14 @@ def _post_add(name: str, *, validate: bool, minimal: bool) -> None:
 
     The hint is only printed when validation was skipped or succeeded;
     printing it after a ``⚠ Connection failed`` line would mislead the
-    user into running ``wren context init`` against a broken profile.
+    user into running ``ontology context init`` against a broken profile.
     """
     ok = True
     if validate and not minimal:
         ok = _validate_connection(name)
     if ok:
         typer.echo("")
-        typer.echo("Next: wren context init")
+        typer.echo("Next: ontology context init")
 
 
 def _retry_hint(name: str) -> str:
@@ -311,9 +311,9 @@ def _retry_hint(name: str) -> str:
     """
     return (
         f"  Fix .env / profile fields, then retry with your original method:\n"
-        f"    wren profile add {name} --from-file <path>   # dotenv-driven\n"
-        f"    wren profile add {name} --ui                 # browser form\n"
-        f"    wren profile add {name} --interactive        # prompt-driven"
+        f"    ontology profile add {name} --from-file <path>   # dotenv-driven\n"
+        f"    ontology profile add {name} --ui                 # browser form\n"
+        f"    ontology profile add {name} --interactive        # prompt-driven"
     )
 
 
@@ -383,8 +383,8 @@ def _validate_connection(name: str) -> bool:
         typer.echo(f"⚠ Connection failed: {exc}", err=True)
         typer.echo(
             "  The profile has been saved. To fix:\n"
-            "    wren profile debug                 # show resolved config\n"
-            f"    wren profile add {name} --ui       # edit and re-validate",
+            "    ontology profile debug                 # show resolved config\n"
+            f"    ontology profile add {name} --ui       # edit and re-validate",
             err=True,
         )
         return False

@@ -1,4 +1,4 @@
-"""Unit tests for wren.config — config loading from ~/.wren/config.json."""
+"""Unit tests for wren.config — config loading from ~/.ontology/config.json."""
 
 from __future__ import annotations
 

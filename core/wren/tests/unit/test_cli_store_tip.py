@@ -45,8 +45,8 @@ def test_main_tip_appears_on_stderr_for_analytical_query():
     with _mock_engine():
         result = runner.invoke(app, ["--sql", sql] + _MDL_ARGS + _CONN_FILE_ARGS)
     assert result.exit_code == 0
-    assert "wren memory store" in result.stderr
-    assert "wren memory store" not in result.stdout
+    assert "ontology memory store" in result.stderr
+    assert "ontology memory store" not in result.stdout
 
 
 def test_main_tip_suppressed_with_quiet_flag():
@@ -56,7 +56,7 @@ def test_main_tip_suppressed_with_quiet_flag():
             app, ["--sql", sql, "--quiet"] + _MDL_ARGS + _CONN_FILE_ARGS
         )
     assert result.exit_code == 0
-    assert "wren memory store" not in result.stderr
+    assert "ontology memory store" not in result.stderr
 
 
 def test_main_tip_suppressed_for_exploratory_query():
@@ -64,7 +64,7 @@ def test_main_tip_suppressed_for_exploratory_query():
     with _mock_engine():
         result = runner.invoke(app, ["--sql", sql] + _MDL_ARGS + _CONN_FILE_ARGS)
     assert result.exit_code == 0
-    assert "wren memory store" not in result.stderr
+    assert "ontology memory store" not in result.stderr
 
 
 def test_main_stdout_clean_of_tip():
@@ -72,7 +72,7 @@ def test_main_stdout_clean_of_tip():
     with _mock_engine():
         result = runner.invoke(app, ["--sql", sql] + _MDL_ARGS + _CONN_FILE_ARGS)
     assert result.exit_code == 0
-    assert "wren memory store" not in result.stdout
+    assert "ontology memory store" not in result.stdout
 
 
 # ── query subcommand ───────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ def test_query_tip_appears_for_analytical_query():
             app, ["query", "--sql", sql] + _MDL_ARGS + _CONN_FILE_ARGS
         )
     assert result.exit_code == 0
-    assert "wren memory store" in result.stderr
+    assert "ontology memory store" in result.stderr
 
 
 def test_query_tip_suppressed_with_quiet_flag():
@@ -96,7 +96,7 @@ def test_query_tip_suppressed_with_quiet_flag():
             ["query", "--sql", sql, "--quiet"] + _MDL_ARGS + _CONN_FILE_ARGS,
         )
     assert result.exit_code == 0
-    assert "wren memory store" not in result.stderr
+    assert "ontology memory store" not in result.stderr
 
 
 def test_query_tip_suppressed_for_exploratory_query():
@@ -106,7 +106,7 @@ def test_query_tip_suppressed_for_exploratory_query():
             app, ["query", "--sql", sql] + _MDL_ARGS + _CONN_FILE_ARGS
         )
     assert result.exit_code == 0
-    assert "wren memory store" not in result.stderr
+    assert "ontology memory store" not in result.stderr
 
 
 def test_tip_includes_sql_in_suggested_command():
@@ -122,7 +122,7 @@ def test_tip_escapes_single_quotes_in_sql():
     with _mock_engine():
         result = runner.invoke(app, ["--sql", sql] + _MDL_ARGS + _CONN_FILE_ARGS)
     assert result.exit_code == 0
-    assert "wren memory store" in result.stderr
+    assert "ontology memory store" in result.stderr
     # Correctly escaped form for POSIX shell single-quote wrapping
     expected = "--sql 'SELECT * FROM orders WHERE status = '\\''open'\\'''"
     assert expected in result.stderr

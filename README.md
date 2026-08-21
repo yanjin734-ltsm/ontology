@@ -1,41 +1,18 @@
-<div align="center" id="top">
-<a href="https://getwren.ai">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./misc/wrenai_logo_white.png">
-    <img src="./misc/wrenai_logo.png" width="300px" alt="WrenAI">
-  </picture>
-</a>
+# Ontology Engine
 
+Ontology Engine is a fork of [WrenAI](https://github.com/Canner/WrenAI) (Apache-2.0) by Canner, Inc.
 
+This product does **not** use the Wren / WrenAI trademarks. The public command is `ontology`; the Python import path remains `import wren` and the query engine remains upstream `wren-core-py`.
 
-### Open-source GenBI: generative BI for AI agents.
-
-*Your agents generate, deploy, and govern dashboards from any database, grounded in a context layer they can actually trust.*
-
-**Wren AI is an open-source generative BI (GenBI) engine — a governed text-to-SQL and semantic-layer platform, powered by an open AI context layer, across 22+ data sources.**
-
-[Docs](https://docs.getwren.ai) · [Discord](https://discord.gg/5DvshJqG8Z) · [Vision](https://www.getwren.ai/post/the-missing-context-layer-for-ai-agents-over-business-data) · [Blog](https://www.getwren.ai/blog)
-
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/Canner/WrenAI/blob/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/wrenai?label=wrenai)](https://pypi.org/project/wrenai/)
-[![GitHub Release](https://img.shields.io/github/v/release/Canner/WrenAI?logo=github&label=release)](https://github.com/Canner/WrenAI/releases)
-[![Discord](https://img.shields.io/discord/1227143286951514152?logo=discord&label=Discord)](https://discord.gg/5DvshJqG8Z)
-[![Last commit](https://img.shields.io/github/last-commit/Canner/WrenAI)](https://github.com/Canner/WrenAI/commits/main)
-[![Follow on X](https://img.shields.io/badge/follow-@getwrenai-blue?logo=x&logoColor=white)](https://x.com/getwrenai)
-[![Made by Canner](https://img.shields.io/badge/made_by-Canner-blue)](https://cannerdata.com)
-![Stars](https://img.shields.io/github/stars/Canner/WrenAI?style=social)
-
-<a href="https://trendshift.io/repositories/9263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9263" alt="Canner/WrenAI | Trendshift" width="250" height="55" /></a>
-
-</div>
+**Based on WrenAI (Apache-2.0) by Canner, Inc.**
 
 > 📣 **2026-05-07**: Wren Engine has merged into this repo under [`core/`](./core). The previous `Canner/wren-engine` repo is archived. The previous WrenAI GenBI app (the Docker-based chat-first BI product) is preserved on the [`legacy/v1`](https://github.com/Canner/WrenAI/tree/legacy/v1) branch (tag `v1-final`) and is now **Wren GenBI Classic**; see [A note on the "GenBI" name](#a-note-on-the-genbi-name) below. [Read the announcement →](https://github.com/Canner/WrenAI/discussions/2205)
 
 ---
 
-## What WrenAI is
+## What Ontology Engine is
 
-WrenAI is the **open-source generative BI (GenBI) engine**: it lets AI agents **generate, deploy, and govern** business intelligence, from a governed **text-to-SQL** answer to a shareable dashboard, across 22+ data sources.
+Ontology Engine is the **open-source generative BI (GenBI) engine**: it lets AI agents **generate, deploy, and govern** business intelligence, from a governed **text-to-SQL** answer to a shareable dashboard, across 22+ data sources.
 
 What makes the output trustworthy is the layer underneath: an open **AI context layer** plus a governed **semantic layer (MDL)** that gives agents what schemas don't. That means business semantics, approved definitions, examples, memory, and governance, plus the unstructured company knowledge that lives in your docs, wikis, and chat threads. Generative BI is only as good as the context it stands on, and Wren is that context, made reviewable and reusable by every agent you already run.
 
@@ -47,7 +24,7 @@ What makes the output trustworthy is the layer underneath: an open **AI context 
 - **Deploy.** Turn any answer into a shareable, browser-side dashboard powered by [`wren-core-wasm`](https://docs.getwren.ai/oss/sdk/wasm) and ship it to your own Vercel or Cloudflare Pages account with one command.
 - **Know.** The knowledge that makes all of this correct lives in versionable, evidence-linked files: semantic models (MDL), company definitions (`instructions.md`), and a memory of what worked. Reviewable. Git-friendly. Never locked inside someone else's UI.
 
-## Why agent builders pick WrenAI
+## Why agent builders pick Ontology Engine
 
 - **Generative BI, end to end.** Wren does **governed text-to-SQL** — and goes beyond it: generate the answer, deploy the dashboard, share the URL, all driven by the agents you already use.
 - **Knowledge management built in.** Business meaning, approved definitions, and proven examples are captured as a reviewable, version-controlled **semantic layer (MDL)**, not buried in prompts.
@@ -56,9 +33,9 @@ What makes the output trustworthy is the layer underneath: an open **AI context 
 - **Governed execution, reviewable context.** Dry-plan validation, row limits, and structured errors keep agent-generated SQL inside guardrails, and every definition and example lives in Git — reviewable, versioned, diff-able. (Row/column-level security and access control are Cloud / self-hosted — see [Open core: OSS vs. Cloud / self-hosted](#open-core-oss-vs-cloud--self-hosted).)
 - **Sits on top of your existing stack.** Warehouse, transformation pipelines, your existing semantic layer. Not another tool to maintain.
 
-## How Wren compares
+## How Ontology Engine compares
 
-|  | A raw LLM agent | A traditional BI tool | A bare semantic layer | **WrenAI** |
+|  | A raw LLM agent | A traditional BI tool | A bare semantic layer | **Ontology Engine** |
 |---|:---:|:---:|:---:|:---:|
 | Writes SQL for you | ✅ (often wrong) | ❌ | ❌ | ✅ governed |
 | Knows your business definitions | ❌ | partial, in-tool | ✅ (schema only) | ✅ + non-schema knowledge |
@@ -67,17 +44,17 @@ What makes the output trustworthy is the layer underneath: an open **AI context 
 | Open, reviewable, Git-friendly context | ❌ | ❌ | partial | ✅ |
 | Governed execution across 22+ sources | ❌ | per-connector | ✅ (definitions only) | ✅ |
 
-## Wren is for you if…
+## Ontology Engine is for you if…
 
 - You want **AI agents to produce trustworthy BI**, answers *and* dashboards, not just plausible SQL.
 - Your business logic (definitions, enums, units, approved joins) lives **outside the database** and your agents keep getting it wrong.
 - You want an **AI context layer** and **semantic layer** that are **open, reviewable, and version-controlled**, usable by every agent and person, not gated behind one vendor's UI.
 
-**Skip Wren if** you only need a one-off chart from a single CSV, or you're happy letting an agent guess at SQL with no governance.
+**Skip Ontology Engine if** you only need a one-off chart from a single CSV, or you're happy letting an agent guess at SQL with no governance.
 
 ## Quickstart
 
-WrenAI is **agent-driven by design**: install the CLI, install a one-file
+Ontology Engine is **agent-driven by design**: install the CLI, install a one-file
 discovery stub for your AI client, then let your AI agent drive the rest.
 Workflow guides live inside the CLI itself and are served on demand, so
 content always matches the installed version.
@@ -85,33 +62,33 @@ content always matches the installed version.
 ### 1. Install the CLI
 
 ```bash
-pip install wrenai                      # core (DuckDB included)
-pip install "wrenai[postgres,memory]"   # add per-datasource and memory extras as needed
+pip install ontology-cli                      # core (DuckDB included)
+pip install "ontology-cli[postgres,memory]"   # add per-datasource and memory extras as needed
 ```
 
 > **Tip for users in mainland China:** If `pip install` is slow or fails, use the Tsinghua mirror:
 > ```bash
-> pip install wrenai -i https://pypi.tuna.tsinghua.edu.cn/simple
+> pip install ontology-cli -i https://pypi.tuna.tsinghua.edu.cn/simple
 > ```
 > If HuggingFace model downloads time out, add `export HF_ENDPOINT=https://hf-mirror.com` before running the CLI.
 
 ### 2. Install the discovery stub for your AI client
 
 ```bash
-npx skills add Canner/WrenAI            # auto-detects Claude Code, Cursor, Cline, Codex, …
+bash skills/install.sh   # local clone; Cursor skill install is not done in v0            # auto-detects Claude Code, Cursor, Cline, Codex, …
 ```
 
 The stub is ~50 lines. It teaches your agent to fetch workflow guides via
-`wren skills get <name>` and shaped prompts via
-`wren ask "<question>" --guided|--direct`, and everything else lives in the CLI.
+`ontology skills get <name>` and shaped prompts via
+`ontology ask "<question>" --guided|--direct`, and everything else lives in the CLI.
 
 ### 3. Ask your agent to set things up
 
 Open your agent in a project directory and say something like:
 
-> "Use Wren to set up my Postgres database."
+> "Use Ontology Engine to set up my Postgres database."
 
-The agent runs `wren skills get onboarding`, follows the guide step-by-step,
+The agent runs `ontology skills get onboarding`, follows the guide step-by-step,
 checks your environment, creates a connection profile, scaffolds the project,
 and runs a first query.
 
@@ -119,9 +96,9 @@ and runs a first query.
 
 Once onboarding finishes, ask:
 
-> "Enrich my Wren project with the business context in `raw/`."
+> "Enrich my Ontology Engine project with the business context in `raw/`."
 
-The agent runs `wren skills get enrich-context` and follows the guide in
+The agent runs `ontology skills get enrich-context` and follows the guide in
 **grill** mode (one question at a time) or **auto-pilot** mode (agent reads
 `<project>/raw/` and proposes). Both modes write to MDL, instructions,
 queries, and memory, all reviewable, all Git-friendly.
@@ -131,13 +108,13 @@ queries, and memory, all reviewable, all Git-friendly.
 > "Who are our top 10 customers by sales this quarter?"
 
 Your agent fetches MDL context, recalls similar past queries, writes
-governed SQL, and executes via `wren query`.
+governed SQL, and executes via `ontology query`.
 
 ### 6. Build & deploy a dashboard: the *Deploy* beat
 
 > "Turn that into an interactive dashboard I can filter and share, and deploy it to Vercel."
 
-The agent runs `wren skills get genbi`, builds a browser-side GenBI app from
+The agent runs `ontology skills get genbi`, builds a browser-side GenBI app from
 your project's context, previews it locally, and ships it to your own Vercel
 or Cloudflare Pages account, returning a live, shareable URL. See the
 [Build & deploy a GenBI app guide](https://docs.getwren.ai/oss/guides/genbi).
@@ -150,14 +127,14 @@ end-to-end in a couple of minutes.
 
 ```bash
 # Day 1 (agent-driven)
-wren skills get onboarding         # workflow guide: set up project + first query  (Generate)
-wren skills get enrich-context     # workflow guide: add business context           (Know)
-wren skills get genbi              # workflow guide: build & deploy a dashboard      (Deploy)
+ontology skills get onboarding         # workflow guide: set up project + first query  (Generate)
+ontology skills get enrich-context     # workflow guide: add business context           (Know)
+ontology skills get genbi              # workflow guide: build & deploy a dashboard      (Deploy)
 
 # Day-to-day
-wren query --sql '...'             # query through the MDL semantic layer
-wren ask "<question>" --guided     # wrap a question for a weaker agent
-wren ask "<question>" --direct     # wrap a question for a stronger agent
+ontology query --sql '...'             # query through the MDL semantic layer
+ontology ask "<question>" --guided     # wrap a question for a weaker agent
+ontology ask "<question>" --direct     # wrap a question for a stronger agent
 ```
 
 Fast at first. Deep when you need it. Always reviewable and Git-friendly.
@@ -194,7 +171,7 @@ Full roadmap and design notes: see the [introduction](https://docs.getwren.ai/os
 
 ### What is generative BI (GenBI)?
 
-Generative BI (GenBI) is business intelligence produced by AI agents: instead of manually building charts, an agent generates governed SQL, deploys a dashboard, and shares it — grounded in an AI context layer so the output is trustworthy, not just plausible. Wren AI is the open-source GenBI engine.
+Generative BI (GenBI) is business intelligence produced by AI agents: instead of manually building charts, an agent generates governed SQL, deploys a dashboard, and shares it — grounded in an AI context layer so the output is trustworthy, not just plausible. Ontology Engine is the open-source GenBI engine.
 
 ### Does Wren AI do text-to-SQL?
 
@@ -218,7 +195,7 @@ The open-source engine in this repo — MDL semantic layer, governed text-to-SQL
 
 ## Open core: OSS vs. Cloud / self-hosted
 
-Wren AI is **open core**. The context engine in this repo — MDL semantic layer, governed text-to-SQL, MCP server, CLI, and 22+ connectors — is open source under Apache-2.0, free forever, and self-hostable. It runs without us.
+Ontology Engine is **open core**. The context engine in this repo — MDL semantic layer, governed text-to-SQL, MCP server, CLI, and 22+ connectors — is open source under Apache-2.0, free forever, and self-hostable. It runs without us.
 
 The following are **commercial**, delivered as **Wren AI Cloud** or self-hosted **Enterprise Plus**:
 

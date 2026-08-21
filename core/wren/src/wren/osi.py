@@ -3,7 +3,7 @@
 OSI is a vendor-agnostic semantic model spec
 (https://github.com/open-semantic-interchange/OSI). This module reads an OSI
 YAML (or JSON) file and produces a Wren MDL manifest dict, suitable for
-``wren context build`` to write as ``target/mdl.json``.
+``ontology context build`` to write as ``target/mdl.json``.
 
 The OSI file itself is the single source of truth — we never copy it into a
 parallel wren project. Wren-specific build hints (column types, dialect
@@ -800,7 +800,7 @@ def lint_osi_file(
 ) -> list[ValidationError]:
     """Run the OSI→MDL conversion solely to collect errors / warnings.
 
-    Used by ``wren context validate --from-osi``. Hard errors include the
+    Used by ``ontology context validate --from-osi``. Hard errors include the
     missing-file / missing-data_source preconditions; everything else flows
     out of :func:`build_manifest_from_osi`.
     """

@@ -1,4 +1,4 @@
-"""Behavior tests for `wren genbi deploy` — token discovery + providers."""
+"""Behavior tests for `ontology genbi deploy` — token discovery + providers."""
 
 from __future__ import annotations
 
@@ -25,9 +25,9 @@ def _isolate_env_loading(monkeypatch):
     """Make token discovery hermetic.
 
     ``resolve_token``'s tier-2 calls ``wren.profile._ensure_env_loaded()``,
-    which merges ``~/.wren/.env`` (and any cwd ``.env``) into ``os.environ``.
+    which merges ``~/.ontology/.env`` (and any cwd ``.env``) into ``os.environ``.
     Without neutralizing it, these tests depend on the developer's machine —
-    a real ``VERCEL_TOKEN`` in ``~/.wren/.env`` makes the missing-token cases
+    a real ``VERCEL_TOKEN`` in ``~/.ontology/.env`` makes the missing-token cases
     pass spuriously and can even trigger a real provider API call. Tests must
     only see tokens they set via ``setenv`` (tier 1) or a project ``.env``
     (tier 3).
@@ -101,7 +101,7 @@ def test_deploy_tolerates_scalar_deploy_block(tmp_path: Path, monkeypatch) -> No
     import wren.genbi.providers as providers  # noqa: PLC0415
 
     project = _make_deployable_project(tmp_path)
-    apps_yml = project / ".wren" / "apps.yml"
+    apps_yml = project / ".ontology" / "apps.yml"
     index = yaml.safe_load(apps_yml.read_text())
     index["apps"]["myapp"]["deploy"] = "https://x"
     apps_yml.write_text(yaml.safe_dump(index))
@@ -162,7 +162,7 @@ def test_deploy_vercel_uploads_and_persists_state(tmp_path: Path, monkeypatch) -
     assert "index.html" in filenames and "mdl.json" in filenames
     assert call["payload"].get("target") != "production"  # preview by default
     # deploy state persisted
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     entry = index["apps"]["myapp"]
     assert entry["status"] == "deployed"
     assert entry["deploy"]["provider"] == "vercel"
@@ -170,7 +170,7 @@ def test_deploy_vercel_uploads_and_persists_state(tmp_path: Path, monkeypatch) -
     assert entry["deploy"]["last_url"] == "https://myapp-abc.vercel.app"
     assert entry["deploy"]["environment"] == "preview"
     # no secrets in the index
-    assert "tok-123" not in (project / ".wren" / "apps.yml").read_text()
+    assert "tok-123" not in (project / ".ontology" / "apps.yml").read_text()
 
 
 def test_deploy_prod_flag_targets_production(tmp_path: Path, monkeypatch) -> None:
@@ -195,7 +195,7 @@ def test_deploy_prod_flag_targets_production(tmp_path: Path, monkeypatch) -> Non
 
     assert result.exit_code == 0, result.output
     assert fake.calls[0]["payload"]["target"] == "production"
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     assert index["apps"]["myapp"]["deploy"]["environment"] == "production"
 
 
@@ -310,13 +310,13 @@ def test_deploy_cloudflare_invokes_wrangler_and_persists_state(
         assert call["env"]["CLOUDFLARE_API_TOKEN"] == "cf-tok"
         assert call["env"]["CLOUDFLARE_ACCOUNT_ID"] == "acct-42"
     # deploy state persisted; no secret in the index
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     entry = index["apps"]["myapp"]
     assert entry["status"] == "deployed"
     assert entry["deploy"]["provider"] == "cloudflare"
     assert entry["deploy"]["account_id"] == "acct-42"
     assert entry["deploy"]["last_url"] == "https://abc123.myapp.pages.dev"
-    assert "cf-tok" not in (project / ".wren" / "apps.yml").read_text()
+    assert "cf-tok" not in (project / ".ontology" / "apps.yml").read_text()
 
 
 def test_deploy_cloudflare_prod_uses_production_branch(tmp_path, monkeypatch) -> None:
@@ -430,7 +430,7 @@ def test_deploy_vercel_fails_when_response_omits_url(tmp_path, monkeypatch) -> N
     assert result.exit_code != 0
     assert "did not include a deployment URL" in result.output
     # a missing URL must not be persisted as a successful deploy
-    index = yaml.safe_load((project / ".wren" / "apps.yml").read_text())
+    index = yaml.safe_load((project / ".ontology" / "apps.yml").read_text())
     assert index["apps"]["myapp"]["status"] != "deployed"
 
 

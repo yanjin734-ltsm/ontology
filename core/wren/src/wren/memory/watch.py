@@ -1,13 +1,13 @@
 """Polling watch loop that auto-reindexes memory when project sources change.
 
-The semantic memory index (``wren memory index``) is a derived artifact built
+The semantic memory index (``ontology memory index``) is a derived artifact built
 from a project's source of truth:
 
 * the compiled MDL manifest (``target/mdl.json``), and
 * the NL→SQL pairs under ``knowledge/sql/*.md``.
 
 During active modelling these sources change often, and a stale index silently
-returns wrong schema context to the LLM. ``wren memory watch`` closes that loop:
+returns wrong schema context to the LLM. ``ontology memory watch`` closes that loop:
 it polls the watched sources on an interval, and whenever their content
 fingerprint changes it triggers a reindex.
 

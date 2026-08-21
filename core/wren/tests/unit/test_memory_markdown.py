@@ -1,7 +1,7 @@
 """O4 — knowledge/sql/*.md is the source of truth for NL→SQL memory.
 
 These run in the unit job (no `memory` extra): markdown writing is
-dependency-free and `wren memory store` must work without LanceDB.
+dependency-free and `ontology memory store` must work without LanceDB.
 """
 
 from __future__ import annotations
@@ -157,7 +157,7 @@ def test_recall_path_annotation_handles_collisions(tmp_path, monkeypatch):
     """recall path annotation matches on exact NL, not a derived slug."""
     from wren.memory.cli import _annotate_markdown_paths  # noqa: PLC0415
 
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
     write_query_markdown(tmp_path, "Revenue?!", "SELECT 1")  # -> revenue.md
     write_query_markdown(tmp_path, "Revenue???", "SELECT 2")  # -> revenue-2.md
     results = [{"nl_query": "Revenue???", "sql_query": "SELECT 2"}]
@@ -166,8 +166,8 @@ def test_recall_path_annotation_handles_collisions(tmp_path, monkeypatch):
 
 
 def test_cli_store_writes_markdown_without_extra(tmp_path, monkeypatch):
-    """`wren memory store` works without the memory extra — markdown only."""
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
+    """`ontology memory store` works without the memory extra — markdown only."""
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
     result = runner.invoke(
         app,
         [

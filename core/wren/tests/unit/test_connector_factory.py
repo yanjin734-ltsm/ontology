@@ -21,4 +21,4 @@ def test_connector_import_error_has_quoted_wrenai_extra_hint(monkeypatch) -> Non
         factory.get_connector(DataSource.doris, {})
 
     assert exc.value.error_code == ErrorCode.NOT_IMPLEMENTED
-    assert "pip install 'wrenai[mysql]'" in str(exc.value)
+    assert "pip install 'ontology-cli[mysql]'" in str(exc.value)

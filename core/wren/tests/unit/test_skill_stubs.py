@@ -1,9 +1,9 @@
 """Guard tests for the skills/ distribution stubs.
 
 The new model:
-- skills/wren/SKILL.md is the single discovery stub that lists every CLI surface.
+- skills/ontology/SKILL.md is the single discovery stub that lists every CLI surface.
 - The five previously-shipped fat skills (and their one-release redirect
-  stubs) are gone — agents fetch workflow guides via `wren skills get`.
+  stubs) are gone — agents fetch workflow guides via `ontology skills get`.
 """
 
 from __future__ import annotations
@@ -28,15 +28,15 @@ DEPRECATED_DIRS = [
 
 
 def test_discovery_stub_exists():
-    stub = _SKILLS / "wren" / "SKILL.md"
+    stub = _SKILLS / "ontology" / "SKILL.md"
     assert stub.is_file()
     text = stub.read_text()
     assert text.startswith("---")
     assert "allowed-tools:" in text
     # discovery stub points at the CLI surfaces
-    assert "wren skills list" in text
-    assert "wren docs connection-info" in text
-    assert "wren ask" in text
+    assert "ontology skills list" in text
+    assert "ontology docs connection-info" in text
+    assert "ontology ask" in text
 
 
 def test_deprecated_dirs_removed():
@@ -62,14 +62,14 @@ def test_versions_json_removed():
 
 def test_install_sh_installs_discovery_stub():
     install = (_SKILLS / "install.sh").read_text()
-    assert 'SKILL="wren"' in install, (
-        "install.sh must install the new `wren` discovery stub"
+    assert 'SKILL="ontology"' in install, (
+        "install.sh must install the new `ontology` discovery stub"
     )
 
 
 def test_index_json_lists_only_discovery_stub():
     data = json.loads((_SKILLS / "index.json").read_text())
     names = [s["name"] for s in data["skills"]]
-    assert names == ["wren"], (
+    assert names == ["ontology"], (
         f"index.json must list only the discovery stub, got: {names}"
     )

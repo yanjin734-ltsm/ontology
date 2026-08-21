@@ -1,16 +1,16 @@
 ---
 name: dlt-connector
-description: "Connect SaaS data (HubSpot, Stripe, Salesforce, GitHub, Slack, etc.) to Wren Engine for SQL analysis. Guides the user through the full flow: install dlt, pick a SaaS source, set up credentials, run the data pipeline into DuckDB, then auto-generate a Wren semantic project from the loaded data. Use this skill whenever the user mentions: connecting SaaS data, importing data from an API, dlt pipelines, loading HubSpot/Stripe/Salesforce/GitHub/Slack data, querying SaaS data with SQL, or setting up a new data source from a REST API. Also trigger when the user already has a dlt-produced DuckDB file and wants to create a Wren project from it."
+description: "Connect SaaS data (HubSpot, Stripe, Salesforce, GitHub, Slack, etc.) to Ontology Engine for SQL analysis. Guides the user through the full flow: install dlt, pick a SaaS source, set up credentials, run the data pipeline into DuckDB, then auto-generate a Wren semantic project from the loaded data. Use this skill whenever the user mentions: connecting SaaS data, importing data from an API, dlt pipelines, loading HubSpot/Stripe/Salesforce/GitHub/Slack data, querying SaaS data with SQL, or setting up a new data source from a REST API. Also trigger when the user already has a dlt-produced DuckDB file and wants to create an Ontology Engine project from it."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 
 # wren-dlt-connector
 
-> Reference docs (`dlt_sources`) and the `introspect_dlt` script are bundled. Pull references with `wren skills get dlt-connector --full`; fetch a script with `wren skills get dlt-connector --script <name>`.
+> Reference docs (`dlt_sources`) and the `introspect_dlt` script are bundled. Pull references with `ontology skills get dlt-connector --full`; fetch a script with `ontology skills get dlt-connector --script <name>`.
 
-Connect SaaS data to Wren Engine for SQL analysis — from zero to a verified, queryable project in one conversation.
+Connect SaaS data to Ontology Engine for SQL analysis — from zero to a verified, queryable project in one conversation.
 
 ## Who this is for
 
@@ -129,7 +129,7 @@ con.close()
 
 ## Phase 2: Model — Generate Wren Project
 
-Run the introspection script to auto-generate a complete Wren project from the DuckDB file:
+Run the introspection script to auto-generate a complete Ontology Engine project from the DuckDB file:
 
 ```bash
 # first fetch the script: wren skills get dlt-connector --script introspect_dlt > introspect_dlt.py
@@ -204,7 +204,7 @@ This phase is not optional. A project that generates YAML but fails at query tim
 
 ```bash
 cd <project-directory>
-wren context build
+ontology context build
 ```
 
 This compiles the YAML models into `target/mdl.json`. If this fails, fix the issues before proceeding (see Troubleshooting below).
@@ -215,13 +215,13 @@ Run at least one query per generated model to confirm the project is functional:
 
 ```bash
 # For each model, verify it resolves correctly
-wren --sql 'SELECT COUNT(*) as total FROM "<table_name>"'
+ontology --sql 'SELECT COUNT(*) as total FROM "<table_name>"'
 ```
 
 If any query fails, debug and fix the model before moving on. Common issues:
 - Wrong catalog in table_reference → "table not found"
 - Type mismatch → fix the column type in metadata.yml
-- Missing profile → check `wren profile list`
+- Missing profile → check `ontology profile list`
 
 ### Step 3: Run interesting queries
 
@@ -229,11 +229,11 @@ Once basic queries pass, run 2–3 more interesting queries to show the user wha
 
 ```bash
 # Preview data
-wren --sql 'SELECT * FROM "<table_name>" LIMIT 5'
+ontology --sql 'SELECT * FROM "<table_name>" LIMIT 5'
 
 # If there's a relationship, verify both models are queryable
-wren --sql 'SELECT * FROM "<parent>" LIMIT 5'
-wren --sql 'SELECT * FROM "<child>" LIMIT 5'
+ontology --sql 'SELECT * FROM "<parent>" LIMIT 5'
+ontology --sql 'SELECT * FROM "<child>" LIMIT 5'
 ```
 
 Show the results to the user and explain what they're seeing. This is their first look at the data through Wren — make it count.
@@ -251,15 +251,15 @@ Only after queries return real data, tell the user the setup is complete. Summar
 The project is now DuckDB-backed, which is exactly what GenBI snapshot mode
 wants. If the user wants to turn this data into a shareable dashboard / web app
 and deploy it (Vercel / Cloudflare), hand off to the GenBI workflow:
-`wren skills get genbi`. Its snapshot source is the very `.duckdb` file this
+`ontology skills get genbi`. Its snapshot source is the very `.duckdb` file this
 pipeline produced.
 
 ## Troubleshooting
 
-If `wren context build` fails:
+If `ontology context build` fails:
 - Check that `data_source: duckdb` is set in `wren_project.yml`
 - Verify the DuckDB file path in the profile is correct
-- Run `wren context validate` for detailed error messages
+- Run `ontology context validate` for detailed error messages
 
 If queries fail with "table not found":
 - **Most likely cause:** `table_reference.catalog` doesn't match the DuckDB filename. If the file is `pipeline.duckdb`, the catalog must be `pipeline`, not empty string.
@@ -271,7 +271,7 @@ If queries fail with type errors:
 - Re-run `introspect_dlt.py` with wren SDK installed to get proper type normalization
 
 General:
-- Check that the profile is active: `wren profile list`
+- Check that the profile is active: `ontology profile list`
 - The DuckDB file might be locked if a dlt pipeline is running — wait for it to finish
 
 ## Important notes

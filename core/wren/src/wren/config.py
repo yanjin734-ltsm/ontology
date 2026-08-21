@@ -1,4 +1,4 @@
-"""Wren CLI configuration loaded from ~/.wren/config.json."""
+"""Ontology Engine CLI configuration loaded from ~/.ontology/config.json."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from wren.model.error import ErrorCode, WrenError
 
 @dataclass(frozen=True)
 class WrenConfig:
-    """Immutable configuration for the Wren CLI.
+    """Immutable configuration for the Ontology Engine CLI.
 
     Attributes
     ----------

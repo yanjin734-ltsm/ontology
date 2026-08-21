@@ -133,13 +133,13 @@ def test_shell_export_beats_dotenv(tmp_path, monkeypatch):
 
 
 def test_user_global_env_is_used(tmp_path, monkeypatch):
-    """``~/.wren/.env`` provides a fallback for operators sharing secrets
+    """``~/.ontology/.env`` provides a fallback for operators sharing secrets
     across multiple projects."""
     monkeypatch.delenv("GLOBAL_VAR", raising=False)
-    wren_home = tmp_path / ".wren"
+    wren_home = tmp_path / ".ontology"
     wren_home.mkdir()
     (wren_home / ".env").write_text("GLOBAL_VAR=global\n")
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", wren_home)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", wren_home)
     monkeypatch.chdir(tmp_path)  # no project-local .env
     assert expand_profile_secrets({"k": "${GLOBAL_VAR}"}) == {"k": "global"}
 
@@ -160,9 +160,9 @@ def test_project_root_env_loaded_when_cwd_is_subdir(tmp_path, monkeypatch):
 
 
 def test_debug_profile_returns_literal_placeholder(tmp_path, monkeypatch):
-    """``wren profile debug`` shows the ``${VAR}`` text, never the real value."""
+    """``ontology profile debug`` shows the ``${VAR}`` text, never the real value."""
     profiles_file = tmp_path / "profiles.yml"
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", profiles_file)
 
     profile_mod.add_profile(
@@ -188,7 +188,7 @@ def test_debug_masks_registry_sensitive_fields(tmp_path, monkeypatch):
     ``ssl_ca``, and the camelCase alias ``clientId``), must still be masked when a
     literal value is stored. ``debug`` must not diverge from the field registry —
     the single source of truth for field sensitivity."""
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", tmp_path / "profiles.yml")
 
     cases = [
@@ -214,7 +214,7 @@ def test_debug_masks_nested_sensitive_fields(tmp_path, monkeypatch):
     ``kwargs: {password: ${PG_PW}}`` resolves; masking must cover the same
     shape, or ``debug`` under-masks exactly the values expansion supports.
     """
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", tmp_path / "profiles.yml")
 
     profile_mod.add_profile(
@@ -243,7 +243,7 @@ def test_debug_leaves_nested_benign_fields_intact(tmp_path, monkeypatch):
     Reverse anchor for ``test_debug_masks_nested_sensitive_fields`` — walking
     nested containers must not turn every nested value into ``***``.
     """
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", tmp_path / "profiles.yml")
 
     profile_mod.add_profile(
@@ -269,7 +269,7 @@ def test_debug_survives_non_string_keys(tmp_path, monkeypatch):
     keys; recursing into ``kwargs``/``settings`` exposes the key predicate to
     them, where a bare ``key.lower()`` raises AttributeError.
     """
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", tmp_path / "profiles.yml")
 
     profile_mod.add_profile(

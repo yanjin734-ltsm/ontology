@@ -1,7 +1,7 @@
 """App index — the single source of truth for GenBI apps in a project.
 
-Owns ``<project>/.wren/apps.yml``. Machine-written (via ``wren genbi
-register``), never hand-rolled. Mirrors the ``~/.wren/profiles.yml``
+Owns ``<project>/.ontology/apps.yml``. Machine-written (via ``ontology genbi
+register``), never hand-rolled. Mirrors the ``~/.ontology/profiles.yml``
 registry pattern. Secrets are never stored here — only non-secret link
 state.
 """
@@ -15,7 +15,7 @@ import yaml
 
 INDEX_SCHEMA_VERSION = 1
 
-_INDEX_RELPATH = Path(".wren") / "apps.yml"
+_INDEX_RELPATH = Path(".ontology") / "apps.yml"
 
 # App status state machine: scaffolded → built → deployed
 STATUSES = ("scaffolded", "built", "deployed")
@@ -26,7 +26,7 @@ def index_path(project_path: Path) -> Path:
 
 
 class MalformedIndexError(Exception):
-    """Raised when ``.wren/apps.yml`` exists but can't be parsed as an index."""
+    """Raised when ``.ontology/apps.yml`` exists but can't be parsed as an index."""
 
 
 def load_index(project_path: Path) -> dict:

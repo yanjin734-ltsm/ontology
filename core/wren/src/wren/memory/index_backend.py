@@ -8,7 +8,7 @@ over them:
 - ``LanceDBIndex`` — semantic search via the ``memory`` extra (lancedb +
   sentence-transformers), with LanceDB as a derived index.
 
-Backend selection: ``WREN_MEMORY_BACKEND=grep|lancedb`` forces a choice;
+Backend selection: ``ONTOLOGY_MEMORY_BACKEND=grep|lancedb`` forces a choice;
 otherwise LanceDB is used when its extra is importable, else Grep.
 """
 
@@ -147,12 +147,12 @@ def _extra_available() -> bool:
 def resolve_backend(env: str | None = None) -> str:
     """Return the backend that will actually be used.
 
-    Honors an explicit ``WREN_MEMORY_BACKEND=grep|lancedb`` (or *env*) override,
+    Honors an explicit ``ONTOLOGY_MEMORY_BACKEND=grep|lancedb`` (or *env*) override,
     else auto-detects. ``lancedb`` is downgraded to ``grep`` whenever its extra
     is unavailable — so the result always reflects what ``get_index`` will build.
     """
     choice = (
-        (env if env is not None else os.environ.get("WREN_MEMORY_BACKEND", ""))
+        (env if env is not None else os.environ.get("ONTOLOGY_MEMORY_BACKEND", ""))
         .strip()
         .lower()
     )

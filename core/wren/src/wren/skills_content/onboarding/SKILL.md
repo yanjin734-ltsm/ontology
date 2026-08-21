@@ -1,9 +1,9 @@
 ---
 name: onboarding
-description: "Onboard a user to Wren Engine end-to-end. Walks through environment checks, project scaffolding, connection configuration via .env, and first query. Use when: user wants to install Wren Engine, set up a new data source connection, or bootstrap a new project from scratch. Triggers: '/wren-onboarding', 'install wren', 'set up wren engine', 'wren onboarding', 'connect new database to wren'."
+description: "Onboard a user to Ontology Engine end-to-end. Walks through environment checks, project scaffolding, connection configuration via .env, and first query. Use when: user wants to install Ontology Engine, set up a new data source connection, or bootstrap a new project from scratch. Triggers: '/wren-onboarding', 'install wren', 'set up wren engine', 'wren onboarding', 'connect new database to wren'."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 
 # Wren Onboarding — Agent Workflow
@@ -21,8 +21,8 @@ Reference docs (the skill points to these — never duplicate their content):
 
 - ❌ **Never collect information for future steps upfront.** Do not ask for project name + database type + credentials in one message.
 - ❌ **Never ask for credentials in chat — not host, port, user, password, tokens, anything.** Credentials always go through `.env`. The user fills the file in their editor; the agent never sees the values.
-- ❌ **Never query the database before MDL is built** via `wren skills get generate-mdl`.
-- ❌ **Never invent connection field names.** Always run `wren docs connection-info <ds>` to see the real fields — it's introspected from the live Pydantic schema, so it's always correct.
+- ❌ **Never query the database before MDL is built** via `ontology skills get generate-mdl`.
+- ❌ **Never invent connection field names.** Always run `ontology docs connection-info <ds>` to see the real fields — it's introspected from the live Pydantic schema, so it's always correct.
 - ✅ Wait for each command to finish, report its output in plain language, then move on.
 - ✅ For any error, consult `connect.md#troubleshooting` and surface the relevant section to the user — don't carry a copy of the playbook here.
 
@@ -32,7 +32,7 @@ Read-only checks. Report findings, do **not** ask about project / credentials / 
 
 1. `python3 --version` — requires Python 3.11+. If older, ask the user to upgrade and stop.
 2. Check virtualenv: `python3 -c "import sys; print(sys.prefix != sys.base_prefix)"`. If `False`, offer to create one (`python3 -m venv .venv && source .venv/bin/activate`). PEP 668 systems will need this.
-3. `wren --version` — if already installed, confirm before reinstalling.
+3. `ontology --version` — if already installed, confirm before reinstalling.
 4. `pwd` — record it. Don't ask where the project should live yet.
 
 Report findings as a 4-bullet list, then continue.
@@ -50,22 +50,22 @@ These two are the only thing Step 2 needs; ask both together so the user has a c
 
 > "Two things before I scaffold:
 > 1. **Project name** — I'll create `~/<name>/` and `cd` into it.
-> 2. **Database type** — run `wren docs connection-info` (no argument) to see the full list, or pick a common one: `postgres` (use for Aurora PostgreSQL), `mysql` (use for Aurora MySQL), `bigquery`, `snowflake`, `clickhouse`, `trino`, `duckdb`, …"
+> 2. **Database type** — run `ontology docs connection-info` (no argument) to see the full list, or pick a common one: `postgres` (use for Aurora PostgreSQL), `mysql` (use for Aurora MySQL), `bigquery`, `snowflake`, `clickhouse`, `trino`, `duckdb`, …"
 
 Wait for both. Don't ask for credentials.
 
 ## Step 2 — Workspace + .env setup (batch)
 
-Side effects: creates `~/<project>/`, installs `wrenai[<ds>,main]`, generates an empty `.env` template. The project files (`wren_project.yml` etc.) come later in Step 3.5 — at this point we only have a directory with credentials waiting to be filled.
+Side effects: creates `~/<project>/`, installs `ontology-cli[<ds>,main]`, generates an empty `.env` template. The project files (`wren_project.yml` etc.) come later in Step 3.5 — at this point we only have a directory with credentials waiting to be filled.
 
 Run as a batch — report each command briefly, then end with one "please fill `.env`" ask:
 
 1. `mkdir -p ~/<project> && cd ~/<project>`.
-2. `pip install "wrenai[<ds>,main]"`. For datasource-specific install gotchas (macOS mysql, etc.), see [`connect.md#per-datasource-setup-notes`](https://github.com/Canner/WrenAI/blob/main/docs/core/guides/connect.md).
+2. `pip install "ontology-cli[<ds>,main]"`. For datasource-specific install gotchas (macOS mysql, etc.), see [`connect.md#per-datasource-setup-notes`](https://github.com/Canner/WrenAI/blob/main/docs/core/guides/connect.md).
 3. **Generate the `.env` template by introspecting the connector**:
 
    ```bash
-   wren docs connection-info <ds> --format md
+   ontology docs connection-info <ds> --format md
    ```
 
    Use the field list to write `.env` with `<DS>_<FIELD>=` keys (UPPER_SNAKE), values **empty**. Example for postgres:
@@ -93,13 +93,13 @@ Write `/tmp/conn.yml` with **every field as a `${VAR}` placeholder** matching th
 datasource: <ds>
 host: ${<DS>_HOST}
 port: ${<DS>_PORT}
-# … one line per field from `wren docs connection-info <ds>`
+# … one line per field from `ontology docs connection-info <ds>`
 ```
 
 Then:
 
 ```bash
-wren profile add <project> --from-file /tmp/conn.yml
+ontology profile add <project> --from-file /tmp/conn.yml
 ```
 
 Validation runs automatically. The CLI overwrites profiles silently — there is no `--force` flag.
@@ -110,7 +110,7 @@ Validation runs automatically. The CLI overwrites profiles silently — there is
 ## Step 3.5 — Scaffold the project
 
 ```bash
-wren context init --empty
+ontology context init --empty
 ```
 
 Refuses to overwrite an existing `wren_project.yml`. Creates the project directory layout (`models/`, `views/`, `relationships.yml`, `knowledge/` (rules + sql), `AGENTS.md`).
@@ -118,40 +118,40 @@ Refuses to overwrite an existing `wren_project.yml`. Creates the project directo
 ## Step 3.6 — Bind the profile to the project
 
 ```bash
-wren context set-profile <project>
+ontology context set-profile <project>
 ```
 
 Writes both `profile: <project>` and `data_source: <ds>` into `wren_project.yml` (data_source is taken from the profile we just validated, so it's guaranteed correct). Future CLI commands and the SDK resolve the connection deterministically — independent of which profile is globally active.
 
-This step also future-proofs the project for multi-project setups: once the binding is recorded, switching `wren profile switch` elsewhere never breaks this project's queries.
+This step also future-proofs the project for multi-project setups: once the binding is recorded, switching `ontology profile switch` elsewhere never breaks this project's queries.
 
 ## Step 4 — Generate MDL (hand off)
 
 > ⚠️ The agent **must** build MDL before any data query. Queries against tables not in MDL will fail.
 
-Run `wren skills get generate-mdl` and follow it. It walks the agent through table introspection, type normalization, and YAML generation. When it finishes, return here and run:
+Run `ontology skills get generate-mdl` and follow it. It walks the agent through table introspection, type normalization, and YAML generation. When it finishes, return here and run:
 
 ```bash
-wren context validate
-wren context build
+ontology context validate
+ontology context build
 ```
 
 Report the model count and any validate warnings.
 
-**Memory recommendation**: count models with `wren context show | grep -c '^model:'`. If `>= 200`, suggest `pip install "wrenai[memory]"` + `wren memory index` (~800 MB). If `< 200`, skip.
+**Memory recommendation**: count models with `ontology context show | grep -c '^model:'`. If `>= 200`, suggest `pip install "ontology-cli[memory]"` + `ontology memory index` (~800 MB). If `< 200`, skip.
 
 ## Step 5 — Ready to explore (hand off)
 
-Suggest 2–3 NL questions based on the discovered tables (e.g. for an orders schema: "How many orders last month?", "Top 5 customers by total"). Then end this skill: for day-to-day querying the agent should run `wren skills get usage`.
+Suggest 2–3 NL questions based on the discovered tables (e.g. for an orders schema: "How many orders last month?", "Top 5 customers by total"). Then end this skill: for day-to-day querying the agent should run `ontology skills get usage`.
 
 ## Cross-skill routing
 
 | Trigger | Skill |
 |---------|-------|
-| User mentions a SaaS source (HubSpot, Stripe, Salesforce, GitHub, Slack, …) | `wren skills get dlt-connector` |
-| User has a connected DB but no MDL yet | `wren skills get generate-mdl` |
-| User has MDL ready, wants to query | `wren skills get usage` |
-| Anything else from-scratch | `wren skills get onboarding` (this skill) |
+| User mentions a SaaS source (HubSpot, Stripe, Salesforce, GitHub, Slack, …) | `ontology skills get dlt-connector` |
+| User has a connected DB but no MDL yet | `ontology skills get generate-mdl` |
+| User has MDL ready, wants to query | `ontology skills get usage` |
+| Anything else from-scratch | `ontology skills get onboarding` (this skill) |
 
 ## On error
 
@@ -163,7 +163,7 @@ Don't carry an error playbook here — surface [`connect.md#troubleshooting`](ht
 - Driver authentication failures
 - Pydantic `ValidationError` / unknown datasource
 - Connection refused / firewall / cloud DB IP allow-list
-- `wren context validate` warning categories
+- `ontology context validate` warning categories
 
 If you hit something not in the playbook, tell the user:
 

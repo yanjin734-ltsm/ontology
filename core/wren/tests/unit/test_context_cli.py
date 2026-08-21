@@ -1,4 +1,4 @@
-"""Integration tests for the `wren context` CLI sub-app."""
+"""Integration tests for the `ontology context` CLI sub-app."""
 
 from __future__ import annotations
 
@@ -377,7 +377,7 @@ def test_instructions_cmd_warns_on_legacy(tmp_path):
 
 
 def test_init_writes_v5(tmp_path):
-    """`wren context init` stamps the latest layout, schema_version 5."""
+    """`ontology context init` stamps the latest layout, schema_version 5."""
     result = runner.invoke(app, ["context", "init", "--path", str(tmp_path)])
     assert result.exit_code == 0, result.output
     config = yaml.safe_load((tmp_path / "wren_project.yml").read_text())
@@ -491,7 +491,7 @@ def test_show_tolerates_null_relationship_models(tmp_path):
     assert result.exit_code == 0, result.output
 
 
-# ── wren context build ────────────────────────────────────────────────────
+# ── ontology context build ────────────────────────────────────────────────────
 
 
 def test_build_creates_target(tmp_path):
@@ -852,11 +852,11 @@ def test_write_project_files_force_preserves_queries_without_replacement(tmp_pat
 
 
 def _isolate_profiles(home_dir: Path, monkeypatch) -> None:
-    """Redirect ~/.wren profile I/O to ``home_dir`` for the duration of a test."""
+    """Redirect ~/.ontology profile I/O to ``home_dir`` for the duration of a test."""
     import wren.profile as profile_mod  # noqa: PLC0415
 
     home_dir.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", home_dir)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", home_dir)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", home_dir / "profiles.yml")
 
 
@@ -1112,7 +1112,7 @@ def test_set_profile_warns_about_stale_mdl_when_datasource_changes(
         app, ["context", "set-profile", "ds_duck", "--path", str(proj)]
     )
     assert result.exit_code == 0, result.output
-    assert "wren context build" in result.output
+    assert "ontology context build" in result.output
     # Mention either the old dialect or the word 'rebuild'/'regenerate' so
     # the warning context is clear.
     msg = result.output.lower()
@@ -1140,7 +1140,7 @@ def test_set_profile_no_stale_mdl_warning_when_datasource_unchanged(
 
     result = runner.invoke(app, ["context", "set-profile", "b", "--path", str(proj)])
     assert result.exit_code == 0, result.output
-    assert "wren context build" not in result.output
+    assert "ontology context build" not in result.output
 
 
 def test_set_profile_prints_summary_with_arrow_when_data_source_changes(

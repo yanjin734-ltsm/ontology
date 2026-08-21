@@ -445,8 +445,8 @@ def main():
         print(f"  {len(tables)} models, {len(relationships)} relationships")
         print("\nNext steps:")
         print(f"  cd {output_dir}")
-        print("  wren context validate")
-        print("  wren context build")
+        print("  ontology context validate")
+        print("  ontology context build")
 
     finally:
         con.close()

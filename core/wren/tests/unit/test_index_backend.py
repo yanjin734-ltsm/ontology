@@ -1,7 +1,7 @@
 """O6 — pluggable recall backend; grep works without the `memory` extra.
 
 Runs in the unit job. The grep backend is dependency-free; CLI tests force
-WREN_MEMORY_BACKEND=grep so they exercise the no-extra path even when the
+ONTOLOGY_MEMORY_BACKEND=grep so they exercise the no-extra path even when the
 extra happens to be installed locally.
 """
 
@@ -76,8 +76,8 @@ def test_get_index_normalizes_explicit_backend(tmp_path):
 
 
 def test_cli_recall_grep_without_semantic(tmp_path, monkeypatch):
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
-    monkeypatch.setenv("WREN_MEMORY_BACKEND", "grep")
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
+    monkeypatch.setenv("ONTOLOGY_MEMORY_BACKEND", "grep")
     _seed(tmp_path)
     result = runner.invoke(
         app, ["memory", "recall", "-q", "revenue by month", "-o", "json"]
@@ -88,8 +88,8 @@ def test_cli_recall_grep_without_semantic(tmp_path, monkeypatch):
 
 
 def test_cli_index_grep_is_noop(tmp_path, monkeypatch):
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
-    monkeypatch.setenv("WREN_MEMORY_BACKEND", "grep")
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
+    monkeypatch.setenv("ONTOLOGY_MEMORY_BACKEND", "grep")
     _seed(tmp_path)
     result = runner.invoke(app, ["memory", "index"])
     assert result.exit_code == 0, result.output
@@ -98,8 +98,8 @@ def test_cli_index_grep_is_noop(tmp_path, monkeypatch):
 
 
 def test_cli_status_and_reset_and_check_grep(tmp_path, monkeypatch):
-    monkeypatch.setenv("WREN_PROJECT_HOME", str(tmp_path))
-    monkeypatch.setenv("WREN_MEMORY_BACKEND", "grep")
+    monkeypatch.setenv("ONTOLOGY_PROJECT_HOME", str(tmp_path))
+    monkeypatch.setenv("ONTOLOGY_MEMORY_BACKEND", "grep")
     _seed(tmp_path)
 
     status = runner.invoke(app, ["memory", "status"])

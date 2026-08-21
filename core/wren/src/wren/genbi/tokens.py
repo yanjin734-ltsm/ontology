@@ -20,7 +20,7 @@ def resolve_token(env_var: str, project_path: Path) -> str | None:
     if value := os.environ.get(env_var):
         return value
 
-    # 2. Standard .env discovery (cwd → cwd-walk project root → ~/.wren/.env).
+    # 2. Standard .env discovery (cwd → cwd-walk project root → ~/.ontology/.env).
     from wren.profile import _ensure_env_loaded  # noqa: PLC0415
 
     _ensure_env_loaded()

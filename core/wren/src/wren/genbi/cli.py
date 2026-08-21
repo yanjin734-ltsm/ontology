@@ -1,4 +1,4 @@
-"""Typer sub-app for ``wren genbi`` commands."""
+"""Typer sub-app for ``ontology genbi`` commands."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ ProjectPathOpt = Annotated[
     typer.Option(
         "--path",
         "-p",
-        help="Project directory. Auto-detected via WREN_PROJECT_HOME, cwd walk, or ~/.wren/config.yml.",
+        help="Project directory. Auto-detected via ONTOLOGY_PROJECT_HOME, cwd walk, or ~/.ontology/config.yml.",
     ),
 ]
 
@@ -165,7 +165,7 @@ def register(
     ] = "snapshot",
     path: ProjectPathOpt = None,
 ) -> None:
-    """Record an agent-authored app in the project index (.wren/apps.yml)."""
+    """Record an agent-authored app in the project index (.ontology/apps.yml)."""
     from wren.genbi.composer import DATA_MODES  # noqa: PLC0415
     from wren.genbi.index import register_app  # noqa: PLC0415
 
@@ -183,7 +183,7 @@ def register(
     if not app_dir.is_dir():
         typer.echo(
             f"Error: no app found at {app_dir}.\n"
-            "  Write the app there first (see `wren genbi build`).",
+            "  Write the app there first (see `ontology genbi build`).",
             err=True,
         )
         raise typer.Exit(1)
@@ -200,7 +200,7 @@ def list_apps(path: ProjectPathOpt = None) -> None:
     project_path = _discover(path)
     apps = load_index(project_path)["apps"]
     if not apps:
-        typer.echo("No apps registered. See `wren genbi build` to create one.")
+        typer.echo("No apps registered. See `ontology genbi build` to create one.")
         return
 
     for name, entry in apps.items():
@@ -237,7 +237,7 @@ def _require_registered(project_path, name: str) -> dict:
     if entry is None:
         typer.echo(
             f"Error: app {name!r} is not registered.\n"
-            f"  Run `wren genbi register {name}` first.",
+            f"  Run `ontology genbi register {name}` first.",
             err=True,
         )
         raise typer.Exit(1)

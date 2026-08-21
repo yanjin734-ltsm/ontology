@@ -1,8 +1,9 @@
-WrenAI License Overview
-=======================
+Ontology Engine License Overview (fork of WrenAI)
+=================================================
 
-WrenAI is multi-licensed. The license that applies depends on the path within
-this repository. Full license texts are provided alongside this file at the
+Ontology Engine is a fork of WrenAI and does not use the Wren / WrenAI trademarks.
+The license that applies depends on the path within this repository.
+WrenAI (the upstream project) is multi-licensed. Full license texts are provided alongside this file at the
 repository root: `LICENSE-APACHE-2.0`, `LICENSE-CC-BY-4.0`, and
 `LICENSE-AGPL-3.0`.
 
@@ -25,7 +26,7 @@ This repository may, in the future, introduce modules licensed under the GNU
 Affero General Public License v3.0 only ("AGPL-3.0-only"). The full text of
 that license is provided here pre-emptively at `LICENSE-AGPL-3.0`. When such
 modules are introduced, the table above will be updated to reflect their
-paths.
+paths. LICENSE-AGPL-3.0 is reserved upstream text; this fork has not enabled AGPL modules.
 
 Per-package metadata
 --------------------

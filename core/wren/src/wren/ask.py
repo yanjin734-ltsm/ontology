@@ -1,6 +1,6 @@
-"""Prompt-shaping helpers for ``wren ask``.
+"""Prompt-shaping helpers for ``ontology ask``.
 
-``wren ask`` wraps a user's natural-language prompt in one of two bundled
+``ontology ask`` wraps a user's natural-language prompt in one of two bundled
 templates and prints the rendered result to stdout. It does not execute any
 query — it produces a prompt for an agent to consume.
 

@@ -190,7 +190,7 @@ def generate_markdown(datasource: str | None = None) -> str:
     sources = _resolve_sources(datasource)
 
     lines: list[str] = []
-    lines.append("# Wren Engine Connection Info Reference")
+    lines.append("# Ontology Engine Connection Info Reference")
     lines.append("")
 
     for ds_name, models in sources.items():

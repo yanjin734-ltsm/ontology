@@ -1,4 +1,4 @@
-"""Typer sub-app for ``wren memory`` commands."""
+"""Typer sub-app for ``ontology memory`` commands."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ memory_app = typer.Typer(
     help="Schema and query memory backed by LanceDB.",
 )
 
-_WREN_HOME = Path(os.environ.get("WREN_HOME", Path.home() / ".wren"))
+_ONTOLOGY_HOME = Path(os.environ.get("ONTOLOGY_HOME", Path.home() / ".ontology"))
 
 # ── Shared option types ───────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ PathOpt = Annotated[
     typer.Option(
         "--path",
         "-p",
-        help="LanceDB storage directory. Defaults to <project>/.wren/memory/.",
+        help="LanceDB storage directory. Defaults to <project>/.ontology/memory/.",
     ),
 ]
 MdlOpt = Annotated[
@@ -45,13 +45,13 @@ OutputOpt = Annotated[
 
 
 def _default_memory_path() -> Path:
-    """Return the project-local memory path, or ~/.wren/memory/ as fallback."""
+    """Return the project-local memory path, or ~/.ontology/memory/ as fallback."""
     try:
         from wren.context import discover_project_path  # noqa: PLC0415
 
-        return discover_project_path() / ".wren" / "memory"
+        return discover_project_path() / ".ontology" / "memory"
     except (SystemExit, Exception):
-        return _WREN_HOME / "memory"
+        return _ONTOLOGY_HOME / "memory"
 
 
 def _load_manifest(mdl: str | None) -> dict:
@@ -65,9 +65,9 @@ def _load_manifest(mdl: str | None) -> dict:
             mdl_path = discover_project_path() / "target" / "mdl.json"
         except SystemExit:
             typer.echo(
-                "Error: no wren project found and --mdl not specified.\n"
+                "Error: no Ontology Engine project found and --mdl not specified.\n"
                 "  Run this command from a directory containing wren_project.yml,\n"
-                "  set WREN_PROJECT_HOME to the project path, or pass --mdl explicitly.",
+                "  set ONTOLOGY_PROJECT_HOME to the project path, or pass --mdl explicitly.",
                 err=True,
             )
             raise typer.Exit(1)
@@ -99,8 +99,8 @@ def _get_store(path: str | None):
         }:
             raise
         typer.echo(
-            "Error: wren[memory] extras not installed. "
-            "Run: pip install 'wrenai[memory]'",
+            "Error: ontology-cli[memory] extras not installed. "
+            "Run: pip install 'ontology-cli[memory]'",
             err=True,
         )
         raise typer.Exit(1)
@@ -189,8 +189,8 @@ def index(
             f"grep backend: {n} pair(s) in knowledge/sql/ — no index build needed."
         )
         typer.echo(
-            "`wren memory recall` works over grep; semantic schema search "
-            "(`wren memory fetch`) needs `wren[memory]`.",
+            "`ontology memory recall` works over grep; semantic schema search "
+            "(`ontology memory fetch`) needs `ontology-cli[memory]`.",
             err=True,
         )
         return
@@ -396,7 +396,7 @@ def store(
             "pyarrow",
         }:
             raise
-        # memory extra not installed — markdown-only; run `wren memory index` later.
+        # memory extra not installed — markdown-only; run `ontology memory index` later.
 
 
 @memory_app.command()
@@ -481,7 +481,7 @@ def reset(
 ) -> None:
     """Drop the derived memory index. knowledge/sql/*.md is preserved.
 
-    The LanceDB index is a derived artifact — after reset, run `wren memory
+    The LanceDB index is a derived artifact — after reset, run `ontology memory
     index` to rebuild it from the markdown source of truth.
     """
     from wren.context import discover_project_path  # noqa: PLC0415
@@ -505,7 +505,7 @@ def reset(
             raise typer.Abort()
     idx.reset()
     typer.echo(
-        "Memory index reset. Run `wren memory index` to rebuild from knowledge/sql/."
+        "Memory index reset. Run `ontology memory index` to rebuild from knowledge/sql/."
     )
 
 
@@ -555,11 +555,11 @@ def check(
         typer.echo("In sync.")
         return
     if missing:
-        typer.echo(f"  {len(missing)} not indexed — run `wren memory index`.")
+        typer.echo(f"  {len(missing)} not indexed — run `ontology memory index`.")
     if stale:
         typer.echo(
             f"  {len(stale)} user pair(s) indexed without markdown — "
-            "stale index, run `wren memory index`."
+            "stale index, run `ontology memory index`."
         )
 
 
@@ -595,7 +595,7 @@ def watch(
 
     Polls ``target/mdl.json`` and ``knowledge/sql/*.md`` on an interval; when
     their content fingerprint changes, runs the equivalent of
-    ``wren memory index`` so semantic recall never serves a stale schema while
+    ``ontology memory index`` so semantic recall never serves a stale schema while
     you are actively modelling. A reindex that fails leaves the change pending
     and is retried on the next poll — an update is never silently dropped.
 
@@ -609,7 +609,7 @@ def watch(
     if resolve_backend() == "grep":
         typer.echo(
             "grep backend: knowledge/sql/ IS the index — nothing to watch. "
-            "Install `wrenai[memory]` for a derived index to keep fresh.",
+            "Install `ontology-cli[memory]` for a derived index to keep fresh.",
             err=True,
         )
         raise typer.Exit(1)
@@ -705,7 +705,7 @@ def export(
     Reads the existing index (requires the ``memory`` extra) and writes each
     NL→SQL pair to the markdown source of truth, preserving source and
     timestamp. The same NL updates one file (dedup). LanceDB is left intact —
-    run `wren memory index` to rebuild, then `wren memory reset` once verified.
+    run `ontology memory index` to rebuild, then `ontology memory reset` once verified.
     """
     from wren.context import discover_project_path  # noqa: PLC0415
     from wren.memory.markdown import write_query_markdown  # noqa: PLC0415
@@ -739,7 +739,7 @@ def export(
 
     typer.echo(f"Exported {exported} pair(s) to knowledge/sql/ ({skipped} skipped).")
     typer.echo(
-        "Run `wren memory index` to rebuild, then `wren memory reset` once verified.",
+        "Run `ontology memory index` to rebuild, then `ontology memory reset` once verified.",
         err=True,
     )
 
@@ -793,8 +793,8 @@ def _interactive_forget(mem_store, source: str | None, limit: int) -> None:
     except ImportError:
         typer.echo(
             "Interactive mode requires InquirerPy.\n"
-            "Install with: pip install 'wrenai[interactive]'\n"
-            "Or use: wren memory forget --id <ID> [--id <ID> ...]",
+            "Install with: pip install 'ontology-cli[interactive]'\n"
+            "Or use: ontology memory forget --id <ID> [--id <ID> ...]",
             err=True,
         )
         raise typer.Exit(1)

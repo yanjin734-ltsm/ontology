@@ -1,4 +1,4 @@
-"""Wren CLI — SQL transform and execution via the Wren semantic layer."""
+"""Ontology Engine CLI — SQL transform and execution via the Wren semantic layer."""
 
 from __future__ import annotations
 
@@ -11,10 +11,10 @@ import typer
 
 from wren.context_cli import context_app
 
-app = typer.Typer(name="wren", help="Wren Engine CLI", no_args_is_help=False)
+app = typer.Typer(name="ontology", help="Ontology Engine CLI", no_args_is_help=False)
 
-_WREN_HOME = Path(os.environ.get("WREN_HOME", str(Path.home() / ".wren"))).expanduser()
-_DEFAULT_CONN = _WREN_HOME / "connection_info.json"
+_ONTOLOGY_HOME = Path(os.environ.get("ONTOLOGY_HOME", str(Path.home() / ".ontology"))).expanduser()
+_DEFAULT_CONN = _ONTOLOGY_HOME / "connection_info.json"
 
 
 # ── File discovery helpers ─────────────────────────────────────────────────
@@ -33,7 +33,7 @@ def _require_mdl(mdl: str | None) -> str:
             return str(target)
         typer.echo(
             f"Error: project found at {project_path} but target/mdl.json missing.\n"
-            "  Hint: run `wren context build` first.",
+            "  Hint: run `ontology context build` first.",
             err=True,
         )
     except SystemExit as e:
@@ -81,10 +81,10 @@ def _load_conn(
     *,
     required: bool = True,
 ) -> dict:
-    """Load connection dict from inline JSON or file, with ~/.wren auto-discovery.
+    """Load connection dict from inline JSON or file, with ~/.ontology auto-discovery.
 
     If neither --connection-info nor --connection-file is given, looks for
-    connection_info.json in ~/.wren.  Raises typer.Exit(1) if required=True and nothing
+    connection_info.json in ~/.ontology.  Raises typer.Exit(1) if required=True and nothing
     is found.
     """
     if connection_info:
@@ -240,7 +240,7 @@ def _build_engine(
             from pydantic import ValidationError  # noqa: PLC0415
 
             try:
-                config = load_config(_WREN_HOME)
+                config = load_config(_ONTOLOGY_HOME)
             except (WrenError, OSError) as e:
                 typer.echo(f"Error: {e}", err=True)
                 raise typer.Exit(1) from e
@@ -266,7 +266,7 @@ def _build_engine(
         raise typer.Exit(1)
 
     try:
-        config = load_config(_WREN_HOME)
+        config = load_config(_ONTOLOGY_HOME)
         return WrenEngine(
             manifest_str=manifest_str,
             data_source=ds,
@@ -320,7 +320,7 @@ def _print_store_tip(sql: str) -> None:
     escaped = sql.replace("'", "'\\''")
     typer.echo(
         f"\n# To save this query:\n"
-        f"# wren memory store --nl '<natural language question>' "
+        f"# ontology memory store --nl '<natural language question>' "
         f"--sql '{escaped}'",
         err=True,
     )
@@ -339,16 +339,16 @@ def _maybe_print_store_tip(sql: str, quiet: bool) -> None:
 
 
 def _version_callback(value: bool) -> None:
-    """Handle ``wren --version`` the idiomatic Typer way.
+    """Handle ``ontology --version`` the idiomatic Typer way.
 
-    ``wren version`` remains for scripts that already use it; ``--version``
+    ``ontology version`` remains for scripts that already use it; ``--version``
     is what most CLI tools expose and what new users try first.
     """
     if not value:
         return
     from wren import __version__  # noqa: PLC0415
 
-    typer.echo(f"wrenai {__version__}")
+    typer.echo(f"ontology-cli {__version__}")
     raise typer.Exit()
 
 
@@ -374,14 +374,14 @@ def main(
             "-V",
             callback=_version_callback,
             is_eager=True,
-            help="Print the wrenai version and exit.",
+            help="Print the ontology-cli version and exit.",
         ),
     ] = None,
 ) -> None:
-    """Wren Engine CLI.
+    """Ontology Engine CLI.
 
     Run with --sql to execute a query using mdl.json and connection_info.json from
-    ~/.wren.  Use a subcommand (query / dry-run / dry-plan)
+    ~/.ontology.  Use a subcommand (query / dry-run / dry-plan)
     for explicit control.
 
     The data source is always read from the 'datasource' field in
@@ -487,7 +487,7 @@ def dry_plan(
                 typer.echo(f"Error: unknown datasource '{prof_ds}'", err=True)
                 raise typer.Exit(1)
             try:
-                config = load_config(_WREN_HOME)
+                config = load_config(_ONTOLOGY_HOME)
             except (WrenError, OSError) as e:
                 typer.echo(f"Error: {e}", err=True)
                 raise typer.Exit(1) from e
@@ -517,7 +517,7 @@ def dry_plan(
         raise typer.Exit(1)
 
     try:
-        config = load_config(_WREN_HOME)
+        config = load_config(_ONTOLOGY_HOME)
     except (WrenError, OSError) as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(1) from e
@@ -583,10 +583,10 @@ def _print_result(table, output: str) -> None:
 
 @app.command()
 def version():
-    """Print the wrenai version."""
+    """Print the ontology-cli version."""
     from wren import __version__  # noqa: PLC0415
 
-    typer.echo(f"wrenai {__version__}")
+    typer.echo(f"ontology-cli {__version__}")
 
 
 # ── Docs subcommand ───────────────────────────────────────────────────────
@@ -607,9 +607,9 @@ app.add_typer(cube_app)
 app.add_typer(utils_app)
 app.add_typer(skills_app)
 
-# The `memory` subcommand group is always registered: `wren memory store`
+# The `memory` subcommand group is always registered: `ontology memory store`
 # writes knowledge/sql/*.md without the optional `memory` extra, and the
-# lancedb-backed commands degrade with a clear "install wren[memory]" message.
+# lancedb-backed commands degrade with a clear "install ontology-cli[memory]" message.
 # Importing memory_app stays light — lancedb / the heavy ML stack are imported
 # lazily inside the commands that need them, never at CLI startup.
 from wren.memory.cli import memory_app  # noqa: E402

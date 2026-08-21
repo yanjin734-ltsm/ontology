@@ -17,7 +17,7 @@ from wren.cli import _resolve_engine_profile
 def isolated_profiles(tmp_path, monkeypatch):
     """Redirect all profile I/O to a temp directory."""
     profiles_file = tmp_path / "profiles.yml"
-    monkeypatch.setattr(profile_mod, "_WREN_HOME", tmp_path)
+    monkeypatch.setattr(profile_mod, "_ONTOLOGY_HOME", tmp_path)
     monkeypatch.setattr(profile_mod, "_PROFILES_FILE", profiles_file)
     return profiles_file
 

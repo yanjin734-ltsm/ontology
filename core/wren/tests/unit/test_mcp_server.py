@@ -64,8 +64,8 @@ def test_recall_queries_uses_ctx_project(tmp_path, monkeypatch):
     recall_queries(question="revenue")
 
     assert captured["project"] == proj_b
-    assert captured["mem_path"] == str(proj_b / ".wren" / "memory")
-    assert captured["mem_path"] != str(proj_a / ".wren" / "memory")
+    assert captured["mem_path"] == str(proj_b / ".ontology" / "memory")
+    assert captured["mem_path"] != str(proj_a / ".ontology" / "memory")
 
 
 def test_get_context_uses_ctx_project(tmp_path, monkeypatch):
@@ -94,8 +94,8 @@ def test_get_context_uses_ctx_project(tmp_path, monkeypatch):
 
     get_context(question="revenue")
 
-    assert captured["path"] == str(proj_b / ".wren" / "memory")
-    assert captured["path"] != str(proj_a / ".wren" / "memory")
+    assert captured["path"] == str(proj_b / ".ontology" / "memory")
+    assert captured["path"] != str(proj_a / ".ontology" / "memory")
 
 
 def test_list_stored_queries_uses_ctx_project(tmp_path, monkeypatch):
@@ -122,8 +122,8 @@ def test_list_stored_queries_uses_ctx_project(tmp_path, monkeypatch):
 
     list_stored_queries()
 
-    assert captured["path"] == str(proj_b / ".wren" / "memory")
-    assert captured["path"] != str(proj_a / ".wren" / "memory")
+    assert captured["path"] == str(proj_b / ".ontology" / "memory")
+    assert captured["path"] != str(proj_a / ".ontology" / "memory")
 
 
 def test_list_stored_queries_fallback_applies_default_cap(tmp_path, monkeypatch):
@@ -205,8 +205,8 @@ def test_store_query_uses_ctx_project(tmp_path, monkeypatch):
 
     store_query(nl_query="revenue", sql_query="SELECT 1")
 
-    assert captured["path"] == str(proj_b / ".wren" / "memory")
-    assert captured["path"] != str(proj_a / ".wren" / "memory")
+    assert captured["path"] == str(proj_b / ".ontology" / "memory")
+    assert captured["path"] != str(proj_a / ".ontology" / "memory")
 
 
 # ── Workflow prompt reflects registered tools ───────────────────────────────

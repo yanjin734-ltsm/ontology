@@ -2,7 +2,7 @@
 
 Profiles may contain ``${VAR}`` references; those are resolved at
 connection time (never at save time) by :func:`expand_profile_secrets`.
-The stored YAML keeps the placeholders so ``wren profile debug`` never
+The stored YAML keeps the placeholders so ``ontology profile debug`` never
 prints an actual secret.
 """
 
@@ -18,8 +18,8 @@ from typing import Any
 
 import yaml
 
-_WREN_HOME = Path(os.environ.get("WREN_HOME", Path.home() / ".wren"))
-_PROFILES_FILE = _WREN_HOME / "profiles.yml"
+_ONTOLOGY_HOME = Path(os.environ.get("ONTOLOGY_HOME", Path.home() / ".ontology"))
+_PROFILES_FILE = _ONTOLOGY_HOME / "profiles.yml"
 
 # ``${VAR}`` references in profile values are resolved from the environment.
 # We restrict variable names to UPPER_SNAKE_CASE so a literal "${foo}" in a
@@ -50,7 +50,7 @@ def _ensure_env_loaded() -> None:
     1. ``$CWD/.env`` — the typical agent flow drops the file here
     2. Walk up from ``$CWD`` to find the project root (``wren_project.yml``),
        load its ``.env`` if different from CWD
-    3. ``~/.wren/.env`` — user-global fallback for operators with many
+    3. ``~/.ontology/.env`` — user-global fallback for operators with many
        projects sharing the same secret bundle
 
     ``python-dotenv`` handles CRLF / LF portably so the same file works on
@@ -83,7 +83,7 @@ def _ensure_env_loaded() -> None:
                 candidates.append(project_env)
             break
 
-    user_env = _WREN_HOME / ".env"
+    user_env = _ONTOLOGY_HOME / ".env"
     if user_env.exists():
         candidates.append(user_env)
 
@@ -180,12 +180,12 @@ def _load_raw() -> dict:
 
 def _save_raw(data: dict) -> None:
     """Write profiles.yml atomically with 0600 permissions."""
-    _WREN_HOME.mkdir(parents=True, exist_ok=True)
+    _ONTOLOGY_HOME.mkdir(parents=True, exist_ok=True)
     payload = yaml.dump(
         data, default_flow_style=False, sort_keys=False, allow_unicode=True
     )
     # Write to a temp file in the same directory then atomically replace
-    fd, tmp_path = tempfile.mkstemp(dir=_WREN_HOME, suffix=".yml.tmp")
+    fd, tmp_path = tempfile.mkstemp(dir=_ONTOLOGY_HOME, suffix=".yml.tmp")
     try:
         os.chmod(tmp_path, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -222,7 +222,7 @@ def resolve_profile_for_project(project_path: Path) -> tuple[str | None, dict]:
 
     Resolution order:
       1. ``profile:`` field in ``<project>/wren_project.yml`` (if non-empty)
-      2. Global active profile in ``~/.wren/profiles.yml``
+      2. Global active profile in ``~/.ontology/profiles.yml``
 
     Returns ``(name, profile_dict)``. Returns ``(None, {})`` if neither a
     project pin nor a global active profile is set.
@@ -242,7 +242,7 @@ def resolve_profile_for_project(project_path: Path) -> tuple[str | None, dict]:
             # the wrong database.
             raise SystemExit(
                 f"Error: invalid YAML in {project_yml}: {exc}\n"
-                "  Fix the file or run `wren context init --force` to "
+                "  Fix the file or run `ontology context init --force` to "
                 "rescaffold."
             ) from exc
         if isinstance(config, dict):
@@ -261,8 +261,8 @@ def resolve_profile_for_project(project_path: Path) -> tuple[str | None, dict]:
             f"Error: project pins profile '{pinned_name}' but it doesn't exist "
             f"in {_PROFILES_FILE}.\n"
             f"Available profiles: {available}.\n"
-            "Run `wren context set-profile <name>` to rebind, or "
-            f"`wren profile add {pinned_name}` to recreate the missing profile."
+            "Run `ontology context set-profile <name>` to rebind, or "
+            f"`ontology profile add {pinned_name}` to recreate the missing profile."
         )
     return pinned_name, dict(profiles[pinned_name])
 
@@ -307,7 +307,7 @@ def resolve_connection(
     """Resolve datasource + connection_info from explicit flags or active profile.
 
     Priority: explicit flags > active profile.
-    Legacy ~/.wren/connection_info.json fallback is handled separately by
+    Legacy ~/.ontology/connection_info.json fallback is handled separately by
     cli._load_conn() and is not performed here.
     Returns (datasource_str_or_None, connection_dict).
     """

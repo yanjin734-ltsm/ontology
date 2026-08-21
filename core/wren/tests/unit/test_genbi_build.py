@@ -1,4 +1,4 @@
-"""Behavior tests for `wren genbi build` — the instruction composer."""
+"""Behavior tests for `ontology genbi build` — the instruction composer."""
 
 from __future__ import annotations
 
@@ -136,8 +136,8 @@ def test_build_includes_wasm_wiring_and_final_steps(tmp_path: Path) -> None:
     # load sequence
     assert "loadMDL" in result.output
     # final steps: register then verify, with the app name filled in
-    assert "wren genbi register myapp --data-mode snapshot" in result.output
-    assert "wren genbi verify myapp" in result.output
+    assert "ontology genbi register myapp --data-mode snapshot" in result.output
+    assert "ontology genbi verify myapp" in result.output
 
 
 def test_build_snapshot_mode_gives_data_bundling_guidance(tmp_path: Path) -> None:

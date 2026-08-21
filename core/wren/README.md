@@ -1,33 +1,33 @@
-# wrenai
+# ontology-cli
 
-[![PyPI version](https://img.shields.io/pypi/v/wrenai.svg)](https://pypi.org/project/wrenai/)
-[![Python](https://img.shields.io/pypi/pyversions/wrenai.svg)](https://pypi.org/project/wrenai/)
-[![License](https://img.shields.io/pypi/l/wrenai.svg)](https://github.com/Canner/WrenAI/blob/main/LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/ontology-cli.svg)](https://pypi.org/project/ontology-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/ontology-cli.svg)](https://pypi.org/project/ontology-cli/)
+[![License](https://img.shields.io/pypi/l/ontology-cli.svg)](https://github.com/Canner/WrenAI/blob/main/LICENSE)
 
-Wren AI CLI and Python SDK — semantic SQL layer for 20+ data sources.
+Ontology Engine CLI and Python SDK — semantic SQL layer for 20+ data sources.
 
 Translate natural SQL queries through an [MDL (Modeling Definition Language)](https://docs.getwren.ai/) semantic layer and execute them against your database. Powered by [Apache DataFusion](https://datafusion.apache.org/).
 
 ## Installation
 
 ```bash
-pip install wrenai                 # Core (DuckDB included)
-pip install 'wrenai[postgres]'     # PostgreSQL
-pip install 'wrenai[mysql]'        # MySQL
-pip install 'wrenai[bigquery]'     # BigQuery
-pip install 'wrenai[snowflake]'    # Snowflake
-pip install 'wrenai[clickhouse]'   # ClickHouse
-pip install 'wrenai[trino]'        # Trino
-pip install 'wrenai[mssql]'        # SQL Server
-pip install 'wrenai[databricks]'   # Databricks
-pip install 'wrenai[redshift]'     # Redshift
-pip install 'wrenai[spark]'        # Spark
-pip install 'wrenai[athena]'       # Athena
-pip install 'wrenai[oracle]'       # Oracle
-pip install 'wrenai[memory]'       # Schema & query memory (LanceDB)
-pip install 'wrenai[ui]'           # Browser-based profile form (starlette + uvicorn)
-pip install 'wrenai[main]'         # memory + interactive prompts + ui
-pip install 'wrenai[all]'          # All connectors + main
+pip install ontology-cli                 # Core (DuckDB included)
+pip install 'ontology-cli[postgres]'     # PostgreSQL
+pip install 'ontology-cli[mysql]'        # MySQL
+pip install 'ontology-cli[bigquery]'     # BigQuery
+pip install 'ontology-cli[snowflake]'    # Snowflake
+pip install 'ontology-cli[clickhouse]'   # ClickHouse
+pip install 'ontology-cli[trino]'        # Trino
+pip install 'ontology-cli[mssql]'        # SQL Server
+pip install 'ontology-cli[databricks]'   # Databricks
+pip install 'ontology-cli[redshift]'     # Redshift
+pip install 'ontology-cli[spark]'        # Spark
+pip install 'ontology-cli[athena]'       # Athena
+pip install 'ontology-cli[oracle]'       # Oracle
+pip install 'ontology-cli[memory]'       # Schema & query memory (LanceDB)
+pip install 'ontology-cli[ui]'           # Browser-based profile form (starlette + uvicorn)
+pip install 'ontology-cli[main]'         # memory + interactive prompts + ui
+pip install 'ontology-cli[all]'          # All connectors + main
 ```
 
 Requires Python 3.11+.
@@ -38,7 +38,7 @@ Requires Python 3.11+.
 
 ```bash
 mkdir my-project && cd my-project
-wren context init
+ontology context init
 ```
 
 This creates `wren_project.yml`, `models/`, and `views/`. Edit `wren_project.yml` to set your `data_source` and add models under `models/`:
@@ -71,25 +71,25 @@ primary_key: order_id
 ```
 
 > **Already have an MDL JSON?** Import it directly:
-> `wren context init --from-mdl path/to/mdl.json`
+> `ontology context init --from-mdl path/to/mdl.json`
 
 **2. Configure a connection profile:**
 
 ```bash
-# Browser form (recommended, requires wrenai[ui])
-wren profile add my-db --ui
+# Browser form (recommended, requires ontology-cli[ui])
+ontology profile add my-db --ui
 
 # Interactive terminal prompts
-wren profile add my-db --interactive
+ontology profile add my-db --interactive
 
 # Import from an existing connection file
-wren profile add my-db --from-file connection_info.json
+ontology profile add my-db --from-file connection_info.json
 ```
 
 **3. Build the manifest:**
 
 ```bash
-wren context build
+ontology context build
 ```
 
 This compiles YAML files into `target/mdl.json`. The CLI auto-discovers this file when you run queries from within the project directory.
@@ -97,10 +97,10 @@ This compiles YAML files into `target/mdl.json`. The CLI auto-discovers this fil
 **4. Run queries:**
 
 ```bash
-wren --sql 'SELECT order_id FROM "orders" LIMIT 10'
+ontology --sql 'SELECT order_id FROM "orders" LIMIT 10'
 ```
 
-`wren` walks up from the current directory to find `wren_project.yml` and uses `target/mdl.json`. You can also pass `--mdl path/to/mdl.json` explicitly.
+`ontology` walks up from the current directory to find `wren_project.yml` and uses `target/mdl.json`. You can also pass `--mdl path/to/mdl.json` explicitly.
 
 For the full CLI reference and per-datasource connection field reference, see [`docs/cli.md`](docs/cli.md) and [`docs/connections.md`](docs/connections.md).
 
@@ -108,18 +108,18 @@ For the full CLI reference and per-datasource connection field reference, see [`
 then query them with a structured input instead of writing `GROUP BY` SQL by hand:
 
 ```bash
-wren cube list
-wren cube describe revenue
-wren cube query --cube revenue --measures total --time-dimension "order_date:month"
+ontology cube list
+ontology cube describe revenue
+ontology cube query --cube revenue --measures total --time-dimension "order_date:month"
 ```
 
 The translator produces `DATE_TRUNC` / `GROUP BY` / `WHERE` clauses for you and
-runs them through the same engine path as `wren --sql`. See the
+runs them through the same engine path as `ontology --sql`. See the
 [Cube guide](../../docs/core/guides/modeling/cube.md) for full YAML structure
 and the [CLI reference](../../docs/core/reference/cli.md#wren-cube--pre-aggregation-queries) for all
 flags.
 
-**5. (Optional) Configure security policy** — create `~/.wren/config.json`:
+**5. (Optional) Configure security policy** — create `~/.ontology/config.json`:
 
 ```json
 {
@@ -133,14 +133,14 @@ flags.
 | `strict_mode` | `false` | When `true`, every table in a query must be defined in the MDL. Queries referencing undeclared tables are rejected before execution. |
 | `denied_functions` | `[]` | List of function names (case-insensitive) that are forbidden in queries. |
 
-**6. (Optional) Index schema for semantic search** (requires `wrenai[memory]`):
+**6. (Optional) Index schema for semantic search** (requires `ontology-cli[memory]`):
 
 ```bash
-wren memory index                              # index MDL schema
-wren memory fetch -q "customer order price"    # fetch relevant schema context
-wren memory store --nl "top customers" --sql "SELECT ..."  # store NL→SQL pair
-wren memory recall -q "best customers"         # retrieve similar past queries
-wren memory watch                              # auto-reindex on schema/query changes
+ontology memory index                              # index MDL schema
+ontology memory fetch -q "customer order price"    # fetch relevant schema context
+ontology memory store --nl "top customers" --sql "SELECT ..."  # store NL→SQL pair
+ontology memory recall -q "best customers"         # retrieve similar past queries
+ontology memory watch                              # auto-reindex on schema/query changes
 ```
 
 **7. (Optional) Build a shareable GenBI app** — turn the context layer into a
@@ -149,12 +149,12 @@ Cloudflare Pages. The CLI owns the build instruction + deterministic state; an
 agent authors the app from it:
 
 ```bash
-wren genbi build sales --prompt "orders dashboard" --data-mode snapshot  # print build instruction
+ontology genbi build sales --prompt "orders dashboard" --data-mode snapshot  # print build instruction
 # agent authors apps/sales/ from the instruction (mdl.json + data/*.parquet)
-wren genbi register sales --data-mode snapshot   # record the app
-wren genbi verify sales                          # preflight (files, MDL, data, secret scan)
-wren genbi open sales                            # local preview
-wren genbi deploy sales --provider vercel        # ship a shareable URL (preview; --prod for production)
+ontology genbi register sales --data-mode snapshot   # record the app
+ontology genbi verify sales                          # preflight (files, MDL, data, secret scan)
+ontology genbi open sales                            # local preview
+ontology genbi deploy sales --provider vercel        # ship a shareable URL (preview; --prod for production)
 ```
 
 Tokens come from the env / `.env` (`VERCEL_TOKEN` / `CLOUDFLARE_API_TOKEN`),
@@ -167,12 +167,12 @@ knowledge tools to Claude Desktop/Code, Cursor, or any MCP client. Runs
 in-process against the compiled MDL — no ibis-server, no separate service:
 
 ```bash
-wren serve mcp                                # stdio (default) — client spawns this as a child process
-wren serve mcp --transport http --port 8080   # local Streamable HTTP for other clients
+ontology serve mcp                                # stdio (default) — client spawns this as a child process
+ontology serve mcp --transport http --port 8080   # local Streamable HTTP for other clients
 ```
 
-Requires `wren context build` to have already run and the `mcp` extra:
-`pip install 'wrenai[mcp]'`. See the
+Requires `ontology context build` to have already run and the `mcp` extra:
+`pip install 'ontology-cli[mcp]'`. See the
 [MCP guide](../../docs/core/guides/mcp.md) and the
 [CLI reference](../../docs/core/reference/cli.md#wren-serve--mcp-server) for
 the full tool/resource list and client wiring.
@@ -181,32 +181,32 @@ the full tool/resource list and client wiring.
 
 ## Connection profiles
 
-Profiles let you store named connection configurations in `~/.wren/profiles.yml` and switch between them easily — useful when working across multiple databases or environments.
+Profiles let you store named connection configurations in `~/.ontology/profiles.yml` and switch between them easily — useful when working across multiple databases or environments.
 
 ```bash
 # Add a profile (browser form, interactive prompts, or file import)
-wren profile add prod --ui                        # opens http://localhost:<port>
-wren profile add staging --interactive            # terminal prompts
-wren profile add local --from-file conn.json      # import existing file
+ontology profile add prod --ui                        # opens http://localhost:<port>
+ontology profile add staging --interactive            # terminal prompts
+ontology profile add local --from-file conn.json      # import existing file
 
 # List and switch profiles
-wren profile list                                 # * marks the active profile
-wren profile switch prod
+ontology profile list                                 # * marks the active profile
+ontology profile switch prod
 
 # Inspect a profile (sensitive fields masked)
-wren profile debug prod
+ontology profile debug prod
 
 # Remove a profile
-wren profile rm old-profile --force
+ontology profile rm old-profile --force
 ```
 
-The `--ui` flag opens a browser-based form that auto-derives fields from each datasource's schema — including file upload for BigQuery credentials, variant selection for Databricks/Redshift, and sensible defaults for all 20+ supported sources. Requires `pip install 'wrenai[ui]'`.
+The `--ui` flag opens a browser-based form that auto-derives fields from each datasource's schema — including file upload for BigQuery credentials, variant selection for Databricks/Redshift, and sensible defaults for all 20+ supported sources. Requires `pip install 'ontology-cli[ui]'`.
 
-Once a profile is active, `wren` uses it automatically:
+Once a profile is active, `ontology` uses it automatically:
 
 ```bash
-wren profile switch prod
-wren --sql 'SELECT COUNT(*) FROM "orders"'        # connects using prod profile
+ontology profile switch prod
+ontology --sql 'SELECT COUNT(*) FROM "orders"'        # connects using prod profile
 ```
 
 ---
@@ -264,7 +264,7 @@ dependencies change, re-run an install recipe first.
 | `just test-mysql` | MySQL connector tests | Yes |
 | `just test` | All tests | Yes |
 
-Profile web tests (`test_profile_web.py`) require `wrenai[ui]`:
+Profile web tests (`test_profile_web.py`) require `ontology-cli[ui]`:
 
 ```bash
 uv sync --extra ui
@@ -279,35 +279,20 @@ uv run --no-sync pytest tests/test_profile_web.py -v
 ./scripts/publish.sh --build    # Build only
 ```
 
-## Package rename: `wren-engine` → `wrenai`
+## Package identity
 
-Starting with the 0.7.0 release, this PyPI distribution is renamed from
-[`wren-engine`](https://pypi.org/project/wren-engine/) to
-[`wrenai`](https://pypi.org/project/wrenai/) to align with the **Wren AI**
-brand. The legacy `wren-engine` project on PyPI is frozen at 0.6.x and
-will not receive further updates.
+This distribution is **ontology-cli** (Ontology Engine). It is a fork of
+WrenAI (Apache-2.0) by Canner, Inc. Internal Python imports remain `import wren`.
+The engine dependency remains upstream `wren-core-py`.
 
-### What stays the same
-
-- The Python import path: `import wren` (and submodules under `wren.*`)
-- The `wren` CLI entrypoint and every subcommand (`wren query`,
-  `wren context`, `wren profile`, `wren memory`, …)
-- All extras (`postgres`, `mysql`, `bigquery`, …, `memory`, `ui`, `main`,
-  `all`)
-- Configuration files under `~/.wren/` (profiles, memory, config)
-
-Only the name you type after `pip install` is different.
-
-### Migration
+- CLI entrypoint: `ontology` (not `wren`)
+- Home directory: `~/.ontology` via `ONTOLOGY_HOME` (no fallback to `~/.wren`)
+- PyPI name: `ontology-cli` (not published in v0)
 
 ```bash
-pip uninstall wren-engine
-pip install wrenai                  # or: pip install "wrenai[<extras>]"
-wren --version                      # should print: wrenai X.Y.Z
+pip install -e ./core/wren
+ontology --version                      # ontology-cli 0.13.3
 ```
-
-If your project pinned `wren-engine` in a `requirements.txt`,
-`pyproject.toml`, or lockfile, replace it with `wrenai` and re-lock.
 
 ## License
 

@@ -11,8 +11,8 @@ from typing import Any
 
 import yaml
 
-_WREN_HOME = Path(os.environ.get("WREN_HOME", Path.home() / ".wren"))
-_DEFAULT_PROJECT = _WREN_HOME / "project"
+_ONTOLOGY_HOME = Path(os.environ.get("ONTOLOGY_HOME", Path.home() / ".ontology"))
+_DEFAULT_PROJECT = _ONTOLOGY_HOME / "project"
 PROJECT_FILE = "wren_project.yml"
 _TARGET_DIR = "target"
 _TARGET_FILE = "mdl.json"
@@ -20,55 +20,55 @@ _TARGET_FILE = "mdl.json"
 _AGENTS_MD_TEMPLATE = """\
 # AGENTS.md
 
-This project uses [Wren Engine](https://github.com/Canner/WrenAI) as the semantic layer for data querying. Queries are written against MDL model names, not raw database tables.
+This project uses Ontology Engine (a fork of WrenAI, Apache-2.0) as the semantic layer for data querying. Queries are written against MDL model names, not raw database tables.
 
 ## Answering data questions
 
 When the user asks about data, metrics, reports, or business questions, follow this workflow:
 
-1. `wren memory fetch -q "<question>"` — get relevant schema context
-2. `wren memory recall -q "<question>" --limit 3` — find similar past queries
+1. `ontology memory fetch -q "<question>"` — get relevant schema context
+2. `ontology memory recall -q "<question>" --limit 3` — find similar past queries
 3. Write SQL using model names from the MDL (not raw table names)
-4. `wren --sql "<sql>"` — execute through the semantic layer
-5. `wren memory store --nl "<question>" --sql "<sql>"` — store confirmed results
+4. `ontology --sql "<sql>"` — execute through the semantic layer
+5. `ontology memory store --nl "<question>" --sql "<sql>"` — store confirmed results
 
-If this is the first query in the session, also run `wren context instructions` to load business rules.
+If this is the first query in the session, also run `ontology context instructions` to load business rules.
 
 ## Modifying the data model
 
 When the user wants to add models, change schema, or onboard a new table:
 
 1. Edit YAML files in `models/`, `views/`, or `relationships.yml`
-2. `wren context validate` — check structure
-3. `wren context build` — compile to `target/mdl.json`
-4. `wren memory index` — re-index schema for search
+2. `ontology context validate` — check structure
+3. `ontology context build` — compile to `target/mdl.json`
+4. `ontology memory index` — re-index schema for search
 
 ## Capturing business context
 
-Rules the schema can't express — canonical tables, default filters, units, enum meanings — go in `knowledge/rules/*.md` (read by `wren context instructions`). Confirmed NL→SQL examples are saved with `wren memory store` (step 5 above), which writes them to `knowledge/sql/`. Both live in the project and are committed with it.
+Rules the schema can't express — canonical tables, default filters, units, enum meanings — go in `knowledge/rules/*.md` (read by `ontology context instructions`). Confirmed NL→SQL examples are saved with `ontology memory store` (step 5 above), which writes them to `knowledge/sql/`. Both live in the project and are committed with it.
 
 ## Prerequisites
 
-This project requires the `wren` CLI. Install with your data source extra:
+This project requires the `ontology` CLI. Install with your data source extra:
 
 ```bash
-pip install "wrenai[postgres,memory,ui]"
+pip install "ontology-cli[postgres,memory,ui]"
 ```
 
 Replace `postgres` with your data source (`mysql`, `bigquery`, `snowflake`, `clickhouse`, `trino`, `mssql`, `databricks`, `redshift`, `spark`, `athena`, `oracle`). The `memory` extra upgrades recall to semantic (embedding) search — without it, `memory store` / `index` / `recall` still work over the `knowledge/` files. `ui` enables the interactive UI.
 
-See https://docs.getwren.ai/oss/engine/get_started/installation for full setup.
+Install from this repo: pip install -e ./core/wren  (package name ontology-cli).
 
 ## Quick reference
 
 | Task | Command |
 |------|---------|
-| Run a query | `wren --sql "SELECT ..."` |
-| Preview planned SQL | `wren dry-plan --sql "SELECT ..."` |
-| Show available models | `wren context show` |
-| Check connection | `wren profile debug` |
-| Check memory index | `wren memory status` |
-| Rebuild after changes | `wren context build && wren memory index` |
+| Run a query | `ontology --sql "SELECT ..."` |
+| Preview planned SQL | `ontology dry-plan --sql "SELECT ..."` |
+| Show available models | `ontology context show` |
+| Check connection | `ontology profile debug` |
+| Check memory index | `ontology memory status` |
+| Rebuild after changes | `ontology context build && ontology memory index` |
 """
 
 
@@ -370,8 +370,8 @@ def write_project_files(
 
 
 def load_global_config() -> dict:
-    """Load ~/.wren/config.yml (global preferences)."""
-    config_file = _WREN_HOME / "config.yml"
+    """Load ~/.ontology/config.yml (global preferences)."""
+    config_file = _ONTOLOGY_HOME / "config.yml"
     if not config_file.exists():
         return {}
     return yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
@@ -382,16 +382,16 @@ def discover_project_path(explicit: str | None = None) -> Path:
 
     Priority:
     1. explicit arg (--project / --path flag)
-    2. WREN_PROJECT_HOME env var
+    2. ONTOLOGY_PROJECT_HOME env var
     3. Walk up from cwd looking for wren_project.yml
-    4. default_project in ~/.wren/config.yml
+    4. default_project in ~/.ontology/config.yml
     5. Raise SystemExit with actionable message
     """
     if explicit:
         return Path(explicit).expanduser()
 
-    # 2. WREN_PROJECT_HOME env var
-    env = os.environ.get("WREN_PROJECT_HOME")
+    # 2. ONTOLOGY_PROJECT_HOME env var
+    env = os.environ.get("ONTOLOGY_PROJECT_HOME")
     if env:
         return Path(env).expanduser()
 
@@ -404,15 +404,15 @@ def discover_project_path(explicit: str | None = None) -> Path:
         if parent == Path.home() or parent == parent.parent:
             break
 
-    # 4. ~/.wren/config.yml default_project
+    # 4. ~/.ontology/config.yml default_project
     cfg = load_global_config()
     if cfg.get("default_project"):
         return Path(cfg["default_project"]).expanduser()
 
     raise SystemExit(
-        "Error: no wren project found.\n"
+        "Error: no Ontology Engine project found.\n"
         "  Run this command from a directory containing wren_project.yml,\n"
-        "  run `wren context init` to create one, or set WREN_PROJECT_HOME."
+        "  run `ontology context init` to create one, or set ONTOLOGY_PROJECT_HOME."
     )
 
 
@@ -518,7 +518,7 @@ def require_schema_version(project_path: Path) -> int:
     if sv not in _SUPPORTED_SCHEMA_VERSIONS:
         raise SystemExit(
             f"Error: unsupported schema_version {sv} in {PROJECT_FILE}. "
-            "Please upgrade wren CLI."
+            "Please upgrade the ontology CLI."
         )
     return sv
 
@@ -937,7 +937,7 @@ def validate_project(project_path: Path) -> list[ValidationError]:
                 ValidationError(
                     "error",
                     PROJECT_FILE,
-                    f"unsupported schema_version {sv} — please upgrade wren CLI",
+                    f"unsupported schema_version {sv} — please upgrade ontology CLI",
                 )
             )
 
@@ -967,7 +967,7 @@ def validate_project(project_path: Path) -> list[ValidationError]:
                     ValidationError(
                         "error",
                         _KNOWLEDGE_CONFIG_FILE,
-                        f"unsupported knowledge schema_version {kv} — please upgrade wren CLI",
+                        f"unsupported knowledge schema_version {kv} — please upgrade ontology CLI",
                     )
                 )
 

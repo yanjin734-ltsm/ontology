@@ -1,29 +1,29 @@
 ---
 name: generate-mdl
-description: "Generate a Wren MDL project by exploring a database with available tools (SQLAlchemy, database drivers, MCP connectors, or raw SQL). Guides agents through schema discovery, type normalization, and MDL YAML generation using the wren CLI. Use when: user wants to create or set up a new MDL, onboard a new data source, or scaffold a project from an existing database."
+description: "Generate a MDL project by exploring a database with available tools (SQLAlchemy, database drivers, MCP connectors, or raw SQL). Guides agents through schema discovery, type normalization, and MDL YAML generation using the ontology CLI. Use when: user wants to create or set up a new MDL, onboard a new data source, or scaffold a project from an existing database."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 
 # Generate Wren MDL — CLI Agent Workflow
 
 Builds an MDL project by discovering database schema and converting it
 into Wren's YAML project format. The agent uses whatever database tools
-are available in its environment for introspection; the wren CLI handles
+are available in its environment for introspection; the ontology CLI handles
 type normalization, validation, and build.
 
-For memory and query workflows after setup, run `wren skills get usage`.
+For memory and query workflows after setup, run `ontology skills get usage`.
 
 ## Prerequisites
 
-- `wren` CLI installed (`pip install "wrenai[<datasource>]"`)
+- `ontology` CLI installed (`pip install "ontology-cli[<datasource>]"`)
 - A working database connection (credentials available to the agent)
-- A connection profile (set up via `wren profile add`) or connection info ready
+- A connection profile (set up via `ontology profile add`) or connection info ready
 
 ## Phase 0 — Detect existing project
 
-**Goal:** If the current directory is already inside a wren project, let the user decide how to proceed.
+**Goal:** If the current directory is already inside an Ontology Engine project, let the user decide how to proceed.
 
 Check whether `wren_project.yml` exists in the current working directory
 (or any parent up to the repository root). If found:
@@ -35,7 +35,7 @@ Check whether `wren_project.yml` exists in the current working directory
      and regenerate from scratch in the same directory.
    - **New path** — keep the existing project untouched and choose a
      different directory for the new project. Ask the user for the new path,
-     then `wren context init --path <new_path>` and continue from Phase 1
+     then `ontology context init --path <new_path>` and continue from Phase 1
      using that path.
 
 If no existing project is detected, proceed directly to Phase 1.
@@ -47,8 +47,8 @@ If no existing project is detected, proceed directly to Phase 1.
 1. Verify connectivity using whichever tool is available:
    - If SQLAlchemy: `engine.connect()` test
    - If database driver: simple query like `SELECT 1`
-   - If wren profile exists: `wren profile debug` to check config
-   - If raw SQL via wren: `wren --sql "SELECT 1"` (requires profile or connection file)
+   - If wren profile exists: `ontology profile debug` to check config
+   - If raw SQL via wren: `ontology --sql "SELECT 1"` (requires profile or connection file)
 
 2. Ask the user:
    - Which **schema(s)** or **dataset(s)** to include (skip if only one exists)
@@ -98,8 +98,8 @@ If no driver is available but a wren profile is configured, query
 `information_schema` through wren itself:
 
 ```bash
-wren --sql "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'" -o json
-wren --sql "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'orders'" -o json
+ontology --sql "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'" -o json
+ontology --sql "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'orders'" -o json
 ```
 
 Note: this goes through the MDL layer, so it only works if you already
@@ -132,7 +132,7 @@ normalized_cols = parse_types(columns, dialect="postgres")
 
 Single type:
 ```bash
-wren utils parse-type --type "character varying(255)" --dialect postgres
+ontology utils parse-type --type "character varying(255)" --dialect postgres
 # → VARCHAR(255)
 ```
 
@@ -149,7 +149,7 @@ echo '[{"column":"id","raw_type":"int8"},{"column":"name","raw_type":"character 
 ### Step 1 — Initialize project
 
 ```bash
-wren context init --path /path/to/project
+ontology context init --path /path/to/project
 ```
 
 This creates:
@@ -171,7 +171,7 @@ project/
 
 > **IMPORTANT: `catalog` and `schema` in `wren_project.yml`**
 >
-> These are Wren Engine's internal namespace — they are NOT the database's
+> These are Ontology Engine's internal namespace — they are NOT the database's
 > native catalog or schema. Keep the defaults (`catalog: wren`, `schema: public`)
 > unless you are intentionally configuring a multi-project namespace.
 >
@@ -237,23 +237,23 @@ Ask the user to describe:
 - Each model (1-2 sentences about what the table represents)
 - Key columns (especially calculated fields or non-obvious names)
 
-These descriptions are indexed by `wren memory index` and significantly
+These descriptions are indexed by `ontology memory index` and significantly
 improve LLM query accuracy.
 
 ## Phase 5 — Validate and build
 
 ```bash
 # Validate YAML structure and integrity
-wren context validate --path /path/to/project
+ontology context validate --path /path/to/project
 
 # If strict mode is desired:
-wren context validate --path /path/to/project --strict
+ontology context validate --path /path/to/project --strict
 
 # Build JSON manifest
-wren context build --path /path/to/project
+ontology context build --path /path/to/project
 
 # Verify against database
-wren --sql "SELECT * FROM <model_name> LIMIT 1"
+ontology --sql "SELECT * FROM <model_name> LIMIT 1"
 ```
 
 If validation fails, fix the reported issues and re-run. Common errors:
@@ -266,14 +266,14 @@ If validation fails, fix the reported issues and re-run. Common errors:
 
 ```bash
 # Index schema (generates seed NL-SQL examples automatically)
-wren memory index
+ontology memory index
 
 # Verify
-wren memory status
+ontology memory status
 ```
 
-After this step, `wren memory fetch` and `wren memory recall` are
-operational. See `wren skills get usage` for query workflows.
+After this step, `ontology memory fetch` and `ontology memory recall` are
+operational. See `ontology skills get usage` for query workflows.
 
 ## Phase 7 — Iterate with the user
 
@@ -283,8 +283,8 @@ The initial MDL is a starting point. Improve it by:
 - Refining descriptions based on actual query usage
 - Adding access control (RLAC/CLAC) if needed
 
-Each change follows: edit YAML → `wren context validate` →
-`wren context build` → `wren memory index`.
+Each change follows: edit YAML → `ontology context validate` →
+`ontology context build` → `ontology memory index`.
 
 ## Quick reference
 
@@ -294,15 +294,15 @@ Each change follows: edit YAML → `wren context validate` →
 | Discover columns + types | Agent's own tools |
 | Discover constraints | Agent's own tools |
 | Normalize types (Python) | `from wren.type_mapping import parse_type` |
-| Normalize types (CLI) | `wren utils parse-type --type T --dialect D` |
-| Normalize types (batch) | `wren utils parse-types --dialect D < columns.json` |
-| Scaffold project | `wren context init` |
+| Normalize types (CLI) | `ontology utils parse-type --type T --dialect D` |
+| Normalize types (batch) | `ontology utils parse-types --dialect D < columns.json` |
+| Scaffold project | `ontology context init` |
 | Write models | Create `models/<name>/metadata.yml` |
 | Write relationships | Edit `relationships.yml` |
-| Validate | `wren context validate` |
-| Build manifest | `wren context build` |
-| Test query | `wren --sql "SELECT * FROM <model> LIMIT 1"` |
-| Index memory | `wren memory index` |
+| Validate | `ontology context validate` |
+| Build manifest | `ontology context build` |
+| Test query | `ontology --sql "SELECT * FROM <model> LIMIT 1"` |
+| Index memory | `ontology memory index` |
 
 ## Things to avoid
 
@@ -310,4 +310,4 @@ Each change follows: edit YAML → `wren context validate` →
 - Do not skip validation before build — invalid YAML produces broken manifests silently
 - Do not guess column types — introspect from the actual database
 - Do not write relationships without confirming join conditions — wrong conditions cause silent query errors
-- Do not skip `wren memory index` after build — stale indexes degrade recall quality
+- Do not skip `ontology memory index` after build — stale indexes degrade recall quality

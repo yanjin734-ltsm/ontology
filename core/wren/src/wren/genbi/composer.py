@@ -1,9 +1,9 @@
-"""Compose the `wren genbi build` instruction.
+"""Compose the `ontology genbi build` instruction.
 
 The CLI never builds the app — it hands the agent an authoritative,
 project-hydrated build instruction (static template + live project facts +
 the user's prompt, verbatim). Mirrors ``_build_base_instructions()`` /
-``wren context instructions``: plain markdown on stdout.
+``ontology context instructions``: plain markdown on stdout.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ warehouse/API at query time:
 2. HARD RULE: warehouse credentials MUST NEVER be inlined into the app.
    The app is a public static site — anyone who opens the URL can read
    every file. Use a proxy/API with its own auth, or browser-side auth.
-   `wren genbi verify` scans for inlined credentials as best-effort
+   `ontology genbi verify` scans for inlined credentials as best-effort
    defense-in-depth — it catches common patterns but is NOT a guarantee;
    the HARD RULE above is what actually keeps secrets out.
 3. The endpoint the app queries must allow the deployed origin via CORS —
@@ -59,7 +59,7 @@ def _format_model_inventory(models: list[dict]) -> str:
     YAML name (e.g. ``name: 3``) cannot crash ``", ".join``.
     """
     if not models:
-        return "- (no models found — run `wren context build` first)"
+        return "- (no models found — run `ontology context build` first)"
     lines = []
     for model in models:
         raw_cols = model.get("columns") or []
@@ -125,8 +125,8 @@ the app folder:
 
 ## Final steps (run these after the app is written)
 
-1. `wren genbi register {app_name} --data-mode {data_mode}`
-2. `wren genbi verify {app_name}`
+1. `ontology genbi register {app_name} --data-mode {data_mode}`
+2. `ontology genbi verify {app_name}`
 
 ## User request
 

@@ -1,4 +1,4 @@
-"""Typer sub-app for ``wren serve`` commands."""
+"""Typer sub-app for ``ontology serve`` commands."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import typer
 
 serve_app = typer.Typer(
     name="serve",
-    help="Serve wren capabilities to external clients (MCP, ...).",
+    help="Serve Ontology Engine capabilities to external clients (MCP, ...).",
 )
 
 _SOURCE_FILES = ("wren_project.yml", "relationships.yml")
@@ -71,8 +71,8 @@ def _print_connection_help(
     Always to stderr — on stdio transport, stdout is the MCP protocol channel
     and must not be polluted.
     """
-    wren_cmd = shutil.which("wren") or sys.argv[0] or "wren"
-    wren_home = os.environ.get("WREN_HOME")
+    wren_cmd = shutil.which("ontology") or sys.argv[0] or "ontology"
+    wren_home = os.environ.get("ONTOLOGY_HOME")
     line = "─" * 68
 
     def echo(msg: str = "") -> None:
@@ -83,12 +83,12 @@ def _print_connection_help(
         # A wildcard bind host isn't a connectable client target — show loopback.
         display_host = "127.0.0.1" if host in ("0.0.0.0", "::", "") else host
         url = f"http://{display_host}:{port}/mcp"
-        echo(" wren MCP server — Streamable HTTP")
+        echo(" ontology MCP server — Streamable HTTP")
         echo(f"   URL: {url}")
         echo("")
         echo(" Register with a client:")
-        echo(f"   Claude Code   claude mcp add --transport http wren {url}")
-        echo(f"   Codex         codex mcp add wren --url {url}")
+        echo(f"   Claude Code   claude mcp add --transport http ontology {url}")
+        echo(f"   Codex         codex mcp add ontology --url {url}")
         echo(
             "   Inspector     npx @modelcontextprotocol/inspector   "
             "(Streamable HTTP → the URL above)"
@@ -99,18 +99,18 @@ def _print_connection_help(
         args = _serve_args(project, profile, allow_write, no_connect)
         # Shell-quote every token so paths with spaces stay copy-pasteable.
         cmd = " ".join(shlex.quote(t) for t in [wren_cmd, *args])
-        env_flag = f" -e {shlex.quote('WREN_HOME=' + wren_home)}" if wren_home else ""
-        echo(" wren MCP server — stdio (your MCP client spawns this process)")
+        env_flag = f" -e {shlex.quote('ONTOLOGY_HOME=' + wren_home)}" if wren_home else ""
+        echo(" ontology MCP server — stdio (your MCP client spawns this process)")
         echo("")
         echo(" Register with a client:")
-        echo(f"   Claude Code   claude mcp add wren{env_flag} -- {cmd}")
-        echo(f"   Codex         codex mcp add wren{env_flag} -- {cmd}")
+        echo(f"   Claude Code   claude mcp add ontology{env_flag} -- {cmd}")
+        echo(f"   Codex         codex mcp add ontology{env_flag} -- {cmd}")
         echo("")
         echo(" Or add to an IDE MCP config (Claude Desktop / Cursor / VS Code):")
         server: dict = {"command": wren_cmd, "args": args}
         if wren_home:
-            server["env"] = {"WREN_HOME": wren_home}
-        config = {"mcpServers": {"wren": server}}
+            server["env"] = {"ONTOLOGY_HOME": wren_home}
+        config = {"mcpServers": {"ontology": server}}
         for cfg_line in json.dumps(config, indent=2).splitlines():
             echo(f"   {cfg_line}")
         echo("")
@@ -158,7 +158,7 @@ def serve_mcp(
         ),
     ] = False,
 ) -> None:
-    """Serve wren's query + context/knowledge tools as an MCP server.
+    """Serve Ontology Engine query + context/knowledge tools as an MCP server.
 
     Backed by an in-process WrenEngine — no ibis-server, no HTTP engine.
     """
@@ -173,7 +173,7 @@ def serve_mcp(
         import mcp  # noqa: F401, PLC0415
     except ImportError:
         typer.echo(
-            "Install the MCP extra: pip install 'wrenai[mcp]'",
+            "Install the MCP extra: pip install 'ontology-cli[mcp]'",
             err=True,
         )
         raise typer.Exit(1)
@@ -196,14 +196,14 @@ def serve_mcp(
     if not mdl_path.exists():
         typer.echo(
             f"Error: project found at {project_path} but target/mdl.json missing.\n"
-            "  Hint: run `wren context build` first.",
+            "  Hint: run `ontology context build` first.",
             err=True,
         )
         raise typer.Exit(1)
 
     if _mdl_is_stale(project_path, mdl_path):
         logger.warning(
-            "MDL may be stale — re-run `wren context build`",
+            "MDL may be stale — re-run `ontology context build`",
         )
 
     connection_info = None

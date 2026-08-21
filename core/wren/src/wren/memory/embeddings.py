@@ -11,7 +11,7 @@ import os
 import threading
 
 _DEFAULT_MODEL = os.getenv(
-    "WREN_EMBEDDING_MODEL", "paraphrase-multilingual-MiniLM-L12-v2"
+    "ONTOLOGY_EMBEDDING_MODEL", "paraphrase-multilingual-MiniLM-L12-v2"
 )
 _DEFAULT_DIM = 384
 

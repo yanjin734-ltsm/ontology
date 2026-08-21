@@ -2,7 +2,7 @@
 
 Dependency-free: no LanceDB / pyarrow / sentence-transformers. The markdown file
 is the source of truth; the LanceDB index (when the ``memory`` extra is
-installed) is a derived artifact built from it — mirroring how ``wren context
+installed) is a derived artifact built from it — mirroring how ``ontology context
 build`` compiles YAML into ``target/mdl.json``.
 
 File format — YAML frontmatter, optional markdown body for notes::

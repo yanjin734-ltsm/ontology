@@ -1,6 +1,6 @@
 # Wren Enrich Context — Cube Proposals
 
-When raw documents define a named aggregation metric (`ARR = MRR × 12`, `weekly active users`, `quarterly churn`), the right sink is almost always a **cube**. Cubes give agents a structured aggregation API (`wren cube query --cube X --measures Y --dimensions Z`) instead of asking them to hand-write `GROUP BY` and `DATE_TRUNC` — the place where small models fail most often.
+When raw documents define a named aggregation metric (`ARR = MRR × 12`, `weekly active users`, `quarterly churn`), the right sink is almost always a **cube**. Cubes give agents a structured aggregation API (`ontology cube query --cube X --measures Y --dimensions Z`) instead of asking them to hand-write `GROUP BY` and `DATE_TRUNC` — the place where small models fail most often.
 
 This reference covers when to propose a cube, what to write, and how to validate.
 
@@ -25,15 +25,15 @@ Raw mentions a named metric / aggregation pattern
 Run these once at the start of any cube-proposing turn:
 
 ```bash
-wren cube list                       # all existing cube names
-wren cube describe <cube_name>       # measures + expressions per cube
+ontology cube list                       # all existing cube names
+ontology cube describe <cube_name>       # measures + expressions per cube
 ```
 
 For each measure you're about to propose:
 
-- **Same expression already exists in another cube** (e.g. `SUM(amount)` for the same `base_object`) → do **not** propose a new cube. Store a `knowledge/sql/` example (via `wren memory store`) pointing at the existing cube instead, so the agent learns to reach for it.
-- **Same name in `wren cube list`** but different `base_object` → name collision. Either fall back to `<name>_v2` (auto-pilot) or grill the user for a better name (grill mode).
-- **Old MDL `metrics:` already defines this** (visible in `wren context show --output json` under each model's `metrics:` array) → do not propose. Surface on the Step 9 "please fix manually" list with the note "old metrics: entry — consider migrating to a cube".
+- **Same expression already exists in another cube** (e.g. `SUM(amount)` for the same `base_object`) → do **not** propose a new cube. Store a `knowledge/sql/` example (via `ontology memory store`) pointing at the existing cube instead, so the agent learns to reach for it.
+- **Same name in `ontology cube list`** but different `base_object` → name collision. Either fall back to `<name>_v2` (auto-pilot) or grill the user for a better name (grill mode).
+- **Old MDL `metrics:` already defines this** (visible in `ontology context show --output json` under each model's `metrics:` array) → do not propose. Surface on the Step 9 "please fix manually" list with the note "old metrics: entry — consider migrating to a cube".
 
 ## Naming policy
 
@@ -97,9 +97,9 @@ Whenever `raw` gives an explicit formula ("ARR = MRR × 12"), use it verbatim in
 
 ### `base_object` selection
 
-The `base_object` must already exist as a model name or view name. Check with `wren context show --output summary`. If raw's metric crosses multiple tables (e.g. "revenue per customer segment" needs `orders ↔ customers`), the correct path is:
+The `base_object` must already exist as a model name or view name. Check with `ontology context show --output summary`. If raw's metric crosses multiple tables (e.g. "revenue per customer segment" needs `orders ↔ customers`), the correct path is:
 
-1. If a relationship already exists → cube can still use one base model and the related column is reachable via the relationship's calculated column on that model. Verify by inspecting `wren context show --output json`.
+1. If a relationship already exists → cube can still use one base model and the related column is reachable via the relationship's calculated column on that model. Verify by inspecting `ontology context show --output json`.
 2. If no relationship → propose a VIEW that pre-joins the tables, then a cube `base_object: <that view>`. (Cubes can sit on views.)
 3. If neither is viable → surface on the manual-fix list — the project needs a relationship before the cube can land.
 
@@ -109,22 +109,22 @@ After writing `cubes/<name>/metadata.yml`:
 
 ```bash
 # 1. Structural validation — checks referenced base_object, unique cube name, well-formed measures
-wren context validate
+ontology context validate
 
 # 2. Semantic validation — confirms measure / dimension expressions compile to real SQL
-wren cube query --cube <name> --measures <first_measure> --sql-only
+ontology cube query --cube <name> --measures <first_measure> --sql-only
 ```
 
 **On failure:**
 
-- `wren context validate` error → revert the cube YAML file (delete it), log the error to the audit, move on.
-- `wren cube query --sql-only` error → revert, surface the specific measure / dimension that won't compile, and either grill (grill mode) or skip (auto-pilot).
+- `ontology context validate` error → revert the cube YAML file (delete it), log the error to the audit, move on.
+- `ontology cube query --sql-only` error → revert, surface the specific measure / dimension that won't compile, and either grill (grill mode) or skip (auto-pilot).
 
-Never leave a project with a cube YAML that doesn't pass both checks. A broken cube poisons `wren cube list` for every future agent session.
+Never leave a project with a cube YAML that doesn't pass both checks. A broken cube poisons `ontology cube list` for every future agent session.
 
 ## Auto-pilot escalation
 
-Cubes are **always** high-blast-radius — a new cube YAML becomes a public name in `wren cube list` that every future agent sees. In auto-pilot, treat every cube proposal as a Universal Rule 7(b) escalation: drop into grill, ask the user, then either apply or skip. This holds even when the cube comes from a Lane 2 NEW claim (raw explicitly defined the metric) — the artifact's blast radius doesn't depend on inference confidence.
+Cubes are **always** high-blast-radius — a new cube YAML becomes a public name in `ontology cube list` that every future agent sees. In auto-pilot, treat every cube proposal as a Universal Rule 7(b) escalation: drop into grill, ask the user, then either apply or skip. This holds even when the cube comes from a Lane 2 NEW claim (raw explicitly defined the metric) — the artifact's blast radius doesn't depend on inference confidence.
 
 ## Examples
 
@@ -163,12 +163,12 @@ Existing cube `daily_engagement` already has measure `dau` with expression `COUN
 Action: skip the cube proposal. Store a pair pointing at the existing cube (lands in `knowledge/sql/`):
 
 ```bash
-wren memory store --tags "source:enrich" \
+ontology memory store --tags "source:enrich" \
   --nl "daily active users for last week" \
   --sql "SELECT day, dau FROM (<result of: wren cube query --cube daily_engagement --measures dau --time-dimension 'day:day:2024-01-01,2024-01-08'>)"
 ```
 
-(Or simpler — log it in the Step 9 audit and let the agent reach for `wren cube query` directly at usage time.)
+(Or simpler — log it in the Step 9 audit and let the agent reach for `ontology cube query` directly at usage time.)
 
 ### Example 3 — old MDL `metrics:` exists (manual fix)
 
@@ -192,7 +192,7 @@ Please fix manually:
 
 ## Things not to do
 
-- Do not write a cube whose `base_object` doesn't exist — `wren context validate` will fail and you'll revert anyway.
+- Do not write a cube whose `base_object` doesn't exist — `ontology context validate` will fail and you'll revert anyway.
 - Do not invent measure / dimension columns that aren't on `base_object` (or reachable via its relationships). Cube YAML doesn't auto-create columns.
 - Do not add `time_dimensions` when raw didn't ask for time bucketing. An empty list is fine; a wrong grain is worse than no grain.
 - Do not write a `metrics:` entry on a model when proposing the same logic as a cube. Cube replaces metric, doesn't supplement.

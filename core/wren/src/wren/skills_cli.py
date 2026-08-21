@@ -1,4 +1,4 @@
-"""``wren skills`` — serve bundled Wren agent skill guides."""
+"""``ontology skills`` — serve bundled Wren agent skill guides."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from wren import skills_delivery
 
 skills_app = typer.Typer(
     name="skills",
-    help="Serve Wren agent skill guides (run `wren skills list`).",
+    help="Serve Ontology Engine agent skill guides (run `ontology skills list`).",
 )
 
 
@@ -21,7 +21,7 @@ def list_cmd() -> None:
     if not skills:
         typer.echo("No skills available.")
         return
-    typer.echo("Available skills (run `wren skills get <name>`):")
+    typer.echo("Available skills (run `ontology skills get <name>`):")
     for skill in skills:
         typer.echo(f"  {skill.name:16}{skill.summary}")
         extras = []
@@ -35,7 +35,7 @@ def list_cmd() -> None:
 
 @skills_app.command()
 def get(
-    name: str = typer.Argument(..., help="Skill name (see `wren skills list`)."),
+    name: str = typer.Argument(..., help="Skill name (see `ontology skills list`)."),
     full: bool = typer.Option(
         False, "--full", help="Include the skill's reference docs."
     ),
@@ -52,14 +52,14 @@ def get(
     except skills_delivery.SkillNotFoundError:
         typer.echo(
             f"Error: unknown skill '{name}'. "
-            "Run `wren skills list` for available names.",
+            "Run `ontology skills list` for available names.",
             err=True,
         )
         raise typer.Exit(1)
     except skills_delivery.ScriptNotFoundError:
         typer.echo(
             f"Error: skill '{name}' has no script '{script}'. "
-            "Run `wren skills list` to see available scripts.",
+            "Run `ontology skills list` to see available scripts.",
             err=True,
         )
         raise typer.Exit(1)

@@ -36,7 +36,7 @@ class ServeContext:
 
 def _memory_path(ctx: ServeContext) -> str:
     """Return the project-local memory path derived solely from ctx.project."""
-    return str(ctx.project / ".wren" / "memory")
+    return str(ctx.project / ".ontology" / "memory")
 
 
 def _normalize_value(value: Any) -> Any:
@@ -155,7 +155,7 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
         ) -> dict:
             """Run a structured cube (metric) query and return aggregated rows.
 
-            Mirrors ``wren cube query``. ``time_dimension`` uses the CLI spec
+            Mirrors ``ontology cube query``. ``time_dimension`` uses the CLI spec
             format ``name:granularity[:start,end]``; ``filters`` use
             ``dim:op[:value]`` (comma-separated values for ``in``/``not_in``).
             Set ``sql_only=True`` to see the generated SQL without executing it.
@@ -389,7 +389,7 @@ def _register_knowledge_tools(mcp: FastMCP, ctx: ServeContext) -> None:
         The schema-axis twin of ``recall_queries``: instead of NL->SQL
         exemplars, this returns models/columns/cubes ranked by relevance.
         Uses embedding search when the ``memory`` extra is installed and the
-        schema has been indexed (``wren memory index``); otherwise falls back
+        schema has been indexed (``ontology memory index``); otherwise falls back
         to the full plain-text schema description (same content as
         ``describe_schema``).
         """
@@ -415,7 +415,7 @@ def _register_knowledge_tools(mcp: FastMCP, ctx: ServeContext) -> None:
                 "strategy": "full",
                 "schema": schema_indexer.describe_schema(manifest),
                 "note": (
-                    "Install wrenai[memory] and run `wren memory index` for "
+                    "Install ontology-cli[memory] and run `ontology memory index` for "
                     "embedding-based schema search on large schemas."
                 ),
             }

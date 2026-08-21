@@ -8,9 +8,9 @@ This reference covers the decision logic for each memory command. The main workf
 
 | Command | When to use |
 |---------|-------------|
-| `wren memory fetch -q "..."` | Default. Auto-selects full text (small schema) or embedding search (large schema) based on a 30K-char threshold. |
-| `wren memory fetch -q "..." --type T --model M` | When you need filtering (forces search strategy on large schemas). |
-| `wren memory describe` | When you want the full schema text and know it is small. |
+| `ontology memory fetch -q "..."` | Default. Auto-selects full text (small schema) or embedding search (large schema) based on a 30K-char threshold. |
+| `ontology memory fetch -q "..." --type T --model M` | When you need filtering (forces search strategy on large schemas). |
+| `ontology memory describe` | When you want the full schema text and know it is small. |
 
 The hybrid strategy works like this:
 - Below 30K characters (~8K tokens): returns the entire schema as structured plain text — the LLM sees complete model-to-column relationships, join paths, and primary keys
@@ -20,56 +20,56 @@ CJK-heavy schemas switch to search sooner (~1.5 chars per token vs 4 for English
 
 Override with `--threshold`:
 ```bash
-wren memory fetch -q "revenue" --threshold 50000   # raise for larger context windows
+ontology memory fetch -q "revenue" --threshold 50000   # raise for larger context windows
 ```
 
 ### Cube schema items
 
-When the MDL defines cubes, `wren memory index` emits these additional schema items:
+When the MDL defines cubes, `ontology memory index` emits these additional schema items:
 
 - `cube:<cube_name>` — cube overview (base object, measure list, dimension list)
 - `measure:<cube>.<measure_name>` — each measure (with expression and type)
 - `cube_dimension:<cube>.<dimension_name>` — each dimension
 - `time_dimension:<cube>.<time_dim_name>` — each time dimension
 
-These items are reachable via `wren memory fetch "<question>"`. For aggregation
+These items are reachable via `ontology memory fetch "<question>"`. For aggregation
 questions like "revenue by month", cube schema items typically rank higher than
 model columns because they match the aggregation intent more directly — then
-the agent should follow up with `wren cube describe <cube>` and `wren cube query`
+the agent should follow up with `ontology cube describe <cube>` and `ontology cube query`
 rather than hand-writing `GROUP BY` SQL.
 
-`wren memory describe` also adds a cube section that lists each cube's measures,
+`ontology memory describe` also adds a cube section that lists each cube's measures,
 dimensions, time dimensions, and hierarchies in markdown.
 
 ---
 
-## Indexing: `wren memory index`
+## Indexing: `ontology memory index`
 
 **When to index:**
-- After updating model YAML files and rebuilding (`wren context build`)
-- When `wren memory status` shows `schema_items: 0 rows`
-- When `wren memory fetch` returns stale results (references deleted models)
+- After updating model YAML files and rebuilding (`ontology context build`)
+- When `ontology memory status` shows `schema_items: 0 rows`
+- When `ontology memory fetch` returns stale results (references deleted models)
 
 **When NOT to index:**
 - Before every query — indexing is expensive, do it once per MDL change
 - When only using `describe` or `fetch` with full strategy — those read the MDL directly
 
 ```bash
-wren memory index
+ontology memory index
 ```
 
 **Automate it while modelling:** instead of re-running `index` by hand every time
-sources change, run `wren memory watch` — it polls `target/mdl.json` and
+sources change, run `ontology memory watch` — it polls `target/mdl.json` and
 `knowledge/sql/*.md` and reindexes automatically on change, so `fetch` never serves a
 stale schema.
 
 ```bash
-wren memory watch   # poll + auto-reindex until Ctrl+C
+ontology memory watch   # poll + auto-reindex until Ctrl+C
 ```
 
 ---
 
-## Storing queries: `wren memory store`
+## Storing queries: `ontology memory store`
 
 **Store by default** when a query executes successfully and there is a clear natural language question. The default is to store, not to wait for explicit confirmation.
 
@@ -86,7 +86,7 @@ wren memory watch   # poll + auto-reindex until Ctrl+C
 - The user explicitly asked not to store it
 
 ```bash
-wren memory store \
+ontology memory store \
   --nl "top 5 customers by revenue last quarter" \
   --sql "SELECT c_name, SUM(o_totalprice) AS revenue ..." \
   --datasource postgres
@@ -96,14 +96,14 @@ The `--nl` value should be the user's original question, not a paraphrase.
 
 ---
 
-## Recalling queries: `wren memory recall`
+## Recalling queries: `ontology memory recall`
 
 **When to recall:**
 - Before writing SQL for a new question, especially complex ones
 - When the user asks something similar to a past question
 
 ```bash
-wren memory recall -q "monthly revenue by category" --limit 3
+ontology memory recall -q "monthly revenue by category" --limit 3
 ```
 
 Use results as few-shot examples: adapt the SQL pattern to the current question.
@@ -135,8 +135,8 @@ After execution:
 ## Housekeeping
 
 ```bash
-wren memory status              # path, table names, row counts
-wren memory reset --force       # drop everything, start fresh
+ontology memory status              # path, table names, row counts
+ontology memory reset --force       # drop everything, start fresh
 ```
 
-All memory commands accept `--path DIR` to override the default storage directory (`<project>/.wren/memory/`, falling back to `~/.wren/memory/` outside a project).
+All memory commands accept `--path DIR` to override the default storage directory (`<project>/.ontology/memory/`, falling back to `~/.ontology/memory/` outside a project).

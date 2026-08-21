@@ -1,18 +1,18 @@
 ---
 name: usage
-description: "Wren Engine CLI workflow guide for AI agents. Answer data questions end-to-end using the wren CLI: gather schema context, recall past queries, write SQL through the MDL semantic layer, execute, and learn from confirmed results. Use when: user asks a data question, requests a report or analysis, asks about metrics, revenue, customers, orders, trends, or any business data; user says 'how many', 'show me', 'what is the', 'top N', 'compare', 'trend', 'growth', 'breakdown'; user wants to explore, analyze, filter, aggregate, or summarize data from a database; agent needs to query data, connect a data source, handle errors, or manage MDL changes via the wren CLI."
+description: "Ontology Engine CLI workflow guide for AI agents. Answer data questions end-to-end using the ontology CLI: gather schema context, recall past queries, write SQL through the MDL semantic layer, execute, and learn from confirmed results. Use when: user asks a data question, requests a report or analysis, asks about metrics, revenue, customers, orders, trends, or any business data; user says 'how many', 'show me', 'what is the', 'top N', 'compare', 'trend', 'growth', 'breakdown'; user wants to explore, analyze, filter, aggregate, or summarize data from a database; agent needs to query data, connect a data source, handle errors, or manage MDL changes via the ontology CLI."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 
-# Wren Engine CLI — Agent Workflow Guide
+# Ontology Engine CLI — Agent Workflow Guide
 
-> This guide is served by the `wren` CLI (`wren skills get usage`), so it always matches your installed wrenai version. Pull the deeper reference docs with `wren skills get usage --full`.
+> This guide is served by the `ontology` CLI (`ontology skills get usage`), so it always matches your installed ontology-cli version. Pull the deeper reference docs with `ontology skills get usage --full`.
 
 ## Preflight — Verify environment and installation
 
-**Goal:** Ensure the `wren` CLI is available before entering any workflow.
+**Goal:** Ensure the `ontology` CLI is available before entering any workflow.
 
 ### Step 1 — Check Python virtual environment
 
@@ -23,17 +23,17 @@ whether a virtual environment is active.
   - Create one (e.g., `python -m venv .venv && source .venv/bin/activate`)
   - Continue without a venv (not recommended — may pollute global packages)
 
-### Step 2 — Check if the `wren` CLI is installed
+### Step 2 — Check if the `ontology` CLI is installed
 
-Run `wren --version`. If the command is not found or errors:
+Run `ontology --version`. If the command is not found or errors:
 
-1. Tell the user that the `wren` CLI is not installed.
+1. Tell the user that the `ontology` CLI is not installed.
 2. Ask if you should help install it.
 3. If the user agrees, determine the **datasource extra** to install:
 
    **Auto-detect from project:** Check whether the current directory is inside
-   a wren project (look for `wren_project.yml` up to the repository root).
-   If found, read the active profile with `cat ~/.wren/profiles.yml` or look
+   an Ontology Engine project (look for `wren_project.yml` up to the repository root).
+   If found, read the active profile with `cat ~/.ontology/profiles.yml` or look
    for a datasource hint in the project's profile configuration. Extract the
    datasource type from there.
 
@@ -46,34 +46,34 @@ Run `wren --version`. If the command is not found or errors:
 4. Install with the detected or chosen extra:
    ```bash
    # DuckDB (no extra needed)
-   pip install "wrenai"
+   pip install "ontology-cli"
 
    # Other datasources
-   pip install "wrenai[<datasource>]"
+   pip install "ontology-cli[<datasource>]"
    ```
    To also enable semantic memory, interactive prompts, and web UI (recommended):
    ```bash
-   pip install "wrenai[<datasource>,main]"
+   pip install "ontology-cli[<datasource>,main]"
    # or for DuckDB:
-   pip install "wrenai[main]"
+   pip install "ontology-cli[main]"
    ```
 
-5. Verify: `wren --version`
+5. Verify: `ontology --version`
 
-If `wren --version` succeeds, proceed to the relevant workflow below.
+If `ontology --version` succeeds, proceed to the relevant workflow below.
 
 ---
 
-The `wren` CLI queries databases through an MDL (Model Definition Language) semantic layer. You write SQL against model names, not raw tables. The engine translates to the target dialect.
+The `ontology` CLI queries databases through an MDL (Model Definition Language) semantic layer. You write SQL against model names, not raw tables. The engine translates to the target dialect.
 
 Two things drive everything:
-- **Profile** — database connection + datasource type, managed via `wren profile` (stored in `~/.wren/profiles.yml`)
-- **Project** — MDL model definitions in YAML, compiled to `target/mdl.json` via `wren context build`
+- **Profile** — database connection + datasource type, managed via `ontology profile` (stored in `~/.ontology/profiles.yml`)
+- **Project** — MDL model definitions in YAML, compiled to `target/mdl.json` via `ontology context build`
 
-The CLI reads the active profile for connection info and datasource. Use `wren profile list` to see which profile is active, `wren profile switch <name>` to change it. `dry-plan` also accepts `--datasource` / `-d` for transpile-only use without a profile.
+The CLI reads the active profile for connection info and datasource. Use `ontology profile list` to see which profile is active, `ontology profile switch <name>` to change it. `dry-plan` also accepts `--datasource` / `-d` for transpile-only use without a profile.
 
-For memory-specific decisions, see the `memory` reference (run `wren skills get usage --full`).
-For SQL syntax, CTE-based modeling, and error diagnosis, see the `wren-sql` reference (run `wren skills get usage --full`).
+For memory-specific decisions, see the `memory` reference (run `ontology skills get usage --full`).
+For SQL syntax, CTE-based modeling, and error diagnosis, see the SQL reference (run `ontology skills get usage --full`).
 For project structure, MDL field definitions, and CLI workflow details, see the [documentation](https://github.com/Canner/WrenAI/tree/main/docs/core).
 
 ---
@@ -84,14 +84,14 @@ For project structure, MDL field definitions, and CLI workflow details, see the 
 
 | Situation | Command |
 |-----------|---------|
-| Default | `wren memory fetch -q "<question>"` |
-| Need specific model's columns | `wren memory fetch -q "..." --model <name> --threshold 0` |
-| Memory not installed | Read `target/mdl.json` in the project directory, or run `wren context show` |
+| Default | `ontology memory fetch -q "<question>"` |
+| Need specific model's columns | `ontology memory fetch -q "..." --model <name> --threshold 0` |
+| Memory not installed | Read `target/mdl.json` in the project directory, or run `ontology context show` |
 
 If this is the first query in the conversation, also run:
 
 ```text
-wren context instructions
+ontology context instructions
 ```
 
 If it returns content, treat it as **rules that override defaults** — apply them to all subsequent queries in this session.
@@ -99,7 +99,7 @@ If it returns content, treat it as **rules that override defaults** — apply th
 ### Step 2 — Recall past queries
 
 ```bash
-wren memory recall -q "<question>" --limit 3
+ontology memory recall -q "<question>" --limit 3
 ```
 
 Use results as few-shot examples. Skip if empty.
@@ -115,7 +115,7 @@ If the question involves **any** of the following, consider decomposing:
 **Decomposition strategy:**
 1. Identify the sub-questions (e.g., "total subscribers at start" + "subscribers who cancelled" → churn rate)
 2. For each sub-question:
-   - `wren memory recall -q "<sub-question>"` — check if a similar pattern exists
+   - `ontology memory recall -q "<sub-question>"` — check if a similar pattern exists
    - Write and execute a simple SQL
    - Note the result
 3. Combine sub-results to answer the original question
@@ -133,7 +133,7 @@ query, go ahead. Decompose when the SQL would be hard to debug if it fails.
 **For simple queries** (single table or simple MDL-defined JOINs, straightforward aggregation):
 Execute directly:
 ```bash
-wren --sql 'SELECT c_name, SUM(o_totalprice) FROM orders
+ontology --sql 'SELECT c_name, SUM(o_totalprice) FROM orders
 JOIN customer ON orders.o_custkey = customer.c_custkey
 GROUP BY 1 ORDER BY 2 DESC LIMIT 5'
 ```
@@ -141,7 +141,7 @@ GROUP BY 1 ORDER BY 2 DESC LIMIT 5'
 **For complex queries** (non-trivial JOINs not covered by MDL relationships, subqueries, multi-step logic):
 Verify first with dry-plan:
 ```bash
-wren dry-plan --sql 'SELECT ...'
+ontology dry-plan --sql 'SELECT ...'
 ```
 
 Check the expanded SQL output:
@@ -152,7 +152,7 @@ Check the expanded SQL output:
 If the expanded SQL looks wrong, fix before executing.
 If it looks correct, proceed:
 ```bash
-wren --sql 'SELECT ...'
+ontology --sql 'SELECT ...'
 ```
 
 **SQL rules:**
@@ -164,7 +164,7 @@ wren --sql 'SELECT ...'
 After successful execution, **store the query by default**:
 
 ```bash
-wren memory store --nl "<user's original question>" --sql "<the SQL>"
+ontology memory store --nl "<user's original question>" --sql "<the SQL>"
 ```
 
 **Skip storing only when:**
@@ -191,24 +191,24 @@ after execution, the query was classified as exploratory.
 
 ### "table not found"
 
-1. Verify model name: `wren memory fetch -q "<name>" --type model --threshold 0`
-2. Check MDL exists: `ls target/mdl.json` (or `wren context show`)
-3. Verify column: `wren memory fetch -q "<column>" --model <name> --threshold 0`
+1. Verify model name: `ontology memory fetch -q "<name>" --type model --threshold 0`
+2. Check MDL exists: `ls target/mdl.json` (or `ontology context show`)
+3. Verify column: `ontology memory fetch -q "<column>" --model <name> --threshold 0`
 
 ### Connection error
 
-1. Check active profile: `wren profile debug`
+1. Check active profile: `ontology profile debug`
 2. Verify datasource and connection fields are correct
-3. Test: `wren --sql "SELECT 1"`
+3. Test: `ontology --sql "SELECT 1"`
 4. Valid datasource values: `postgres` (for Aurora Postgres), `mysql` (for Aurora MySQL), `bigquery`, `snowflake`, `clickhouse`, `trino`, `mssql`, `databricks`, `redshift`, `spark`, `athena`, `oracle`, `duckdb`
-5. If no profile exists, create one: `wren profile add --ui` (or `--interactive` / `--from-file`)
+5. If no profile exists, create one: `ontology profile add --ui` (or `--interactive` / `--from-file`)
 
 ### SQL syntax / planning error (enhanced)
 
 #### Layer 1: Identify the failure point
 
 ```bash
-wren dry-plan --sql "<failed SQL>"
+ontology dry-plan --sql "<failed SQL>"
 ```
 
 | dry-plan result | Failure layer | Next step |
@@ -222,8 +222,8 @@ The dry-plan error message tells you exactly what's wrong:
 
 | Error pattern | Diagnosis | Fix |
 |---------------|-----------|-----|
-| `column 'X' not found in model 'Y'` | Wrong column name | `wren memory fetch -q "X" --model Y --threshold 0` to find correct name |
-| `model 'X' not found` | Wrong model name | `wren memory fetch -q "X" --type model --threshold 0` |
+| `column 'X' not found in model 'Y'` | Wrong column name | `ontology memory fetch -q "X" --model Y --threshold 0` to find correct name |
+| `model 'X' not found` | Wrong model name | `ontology memory fetch -q "X" --type model --threshold 0` |
 | `ambiguous column 'X'` | Column exists in multiple models | Qualify with model name: `ModelName.column` |
 | Planning error with JOIN | Relationship not defined in MDL | Check available relationships in context |
 
@@ -248,19 +248,19 @@ The DB error + dry-plan output together pinpoint the issue:
 the query to the smallest failing fragment. Execute subqueries independently
 to isolate which part fails.
 
-For the CTE rewrite pipeline and additional error patterns, see the `wren-sql` reference (run `wren skills get usage --full`).
+For the CTE rewrite pipeline and additional error patterns, see the SQL reference (run `ontology skills get usage --full`).
 
 ---
 
 ## Workflow 3: Connecting a new data source
 
-1. Add a profile: `wren profile add --ui` (or `--interactive` / `--from-file`)
-2. Test connection: `wren profile debug`
-3. Test query: `wren --sql "SELECT 1"`
-4. Initialize project: `wren context init`
-5. Build manifest: `wren context build`
-6. Index: `wren memory index`
-7. Verify: `wren --sql "SELECT * FROM <model> LIMIT 5"`
+1. Add a profile: `ontology profile add --ui` (or `--interactive` / `--from-file`)
+2. Test connection: `ontology profile debug`
+3. Test query: `ontology --sql "SELECT 1"`
+4. Initialize project: `ontology context init`
+5. Build manifest: `ontology context build`
+6. Index: `ontology memory index`
+7. Verify: `ontology --sql "SELECT * FROM <model> LIMIT 5"`
 
 ---
 
@@ -270,16 +270,16 @@ When model YAML files are updated, rebuild and re-index:
 
 ```bash
 # 1. Validate changes
-wren context validate
+ontology context validate
 
 # 2. Rebuild manifest
-wren context build
+ontology context build
 
 # 3. Re-index schema memory
-wren memory index
+ontology memory index
 
 # 4. Verify
-wren --sql "SELECT * FROM <changed_model> LIMIT 1"
+ontology --sql "SELECT * FROM <changed_model> LIMIT 1"
 ```
 
 ---
@@ -287,20 +287,20 @@ wren --sql "SELECT * FROM <changed_model> LIMIT 1"
 ## Command decision tree
 
 ```text
-Get data back           → wren --sql "..."
-Aggregation across dims → wren cube query --cube <name> --measures <m> (if cube defined)
-See translated SQL only → wren dry-plan --sql "..." (accepts -d <datasource> if no active profile)
-Validate against DB     → wren dry-run --sql "..."
-Schema context          → wren memory fetch -q "..."
-Filter by type/model    → wren memory fetch -q "..." --type T --model M --threshold 0
-Store confirmed query   → wren memory store --nl "..." --sql "..."
-Few-shot examples       → wren memory recall -q "..."
-Index stats             → wren memory status
-Re-index after MDL change → wren memory index
-Show project context    → wren context show
-Rebuild manifest        → wren context build
-Check profile           → wren profile debug
-Switch profile          → wren profile switch <name>
+Get data back           → ontology --sql "..."
+Aggregation across dims → ontology cube query --cube <name> --measures <m> (if cube defined)
+See translated SQL only → ontology dry-plan --sql "..." (accepts -d <datasource> if no active profile)
+Validate against DB     → ontology dry-run --sql "..."
+Schema context          → ontology memory fetch -q "..."
+Filter by type/model    → ontology memory fetch -q "..." --type T --model M --threshold 0
+Store confirmed query   → ontology memory store --nl "..." --sql "..."
+Few-shot examples       → ontology memory recall -q "..."
+Index stats             → ontology memory status
+Re-index after MDL change → ontology memory index
+Show project context    → ontology context show
+Rebuild manifest        → ontology context build
+Check profile           → ontology profile debug
+Switch profile          → ontology profile switch <name>
 ```
 
 ---
@@ -313,7 +313,7 @@ When the user asks an aggregation question (e.g., "total revenue by month",
 ### Step 1: Discover cubes
 
 ```bash
-wren cube list
+ontology cube list
 ```
 
 If cubes exist and cover the user's question, prefer cube query over raw SQL.
@@ -323,7 +323,7 @@ hand-write GROUP BY / DATE_TRUNC.
 ### Step 2: Inspect cube structure
 
 ```bash
-wren cube describe <cube_name>
+ontology cube describe <cube_name>
 ```
 
 Shows the cube's baseObject, measures (with expressions), dimensions,
@@ -344,7 +344,7 @@ time dimensions, and hierarchies.
 CLI flags:
 
 ```bash
-wren cube query \
+ontology cube query \
   --cube revenue \
   --measures total,order_count \
   --time-dimension "order_date:month:2024-01-01,2025-01-01" \
@@ -355,7 +355,7 @@ wren cube query \
 JSON input (good for agent-generated structured queries):
 
 ```bash
-echo '{"cube":"revenue","measures":["total"]}' | wren cube query --from -
+echo '{"cube":"revenue","measures":["total"]}' | ontology cube query --from -
 ```
 
 Add `--sql-only` to print the generated SQL without executing — useful for
@@ -365,14 +365,14 @@ verification before paying for execution on a remote warehouse.
 
 | Error | Action |
 |---|---|
-| `Unknown measure 'X'` | `wren cube describe <cube>` for available measures |
-| `Unknown dimension 'X'` | `wren cube describe <cube>` for available dimensions |
-| `Cube 'X' not found` | `wren cube list` |
+| `Unknown measure 'X'` | `ontology cube describe <cube>` for available measures |
+| `Unknown dimension 'X'` | `ontology cube describe <cube>` for available dimensions |
+| `Cube 'X' not found` | `ontology cube list` |
 | `Circular dependency detected` | Derived measure references itself — inspect the cube YAML |
 
 ### When NOT to use cube query
 
-Fall back to `wren --sql` when:
+Fall back to `ontology --sql` when:
 
 - Custom JOINs across multiple models
 - Window functions, CTEs, or subqueries
@@ -386,12 +386,12 @@ Fall back to `wren --sql` when:
 ```text
 User question → Is it an aggregation question?
                 (SUM, COUNT, AVG, GROUP BY, "by month", "per customer", ...)
-  ├── Yes → Are cubes defined? (`wren cube list` once at start of session)
-  │         ├── Yes → Does a cube cover the question? (`wren cube describe`)
-  │         │         ├── Yes → Use `wren cube query` (preferred — lower error rate)
-  │         │         └── No  → Write raw SQL with `wren --sql`
-  │         └── No  → Write raw SQL with `wren --sql`
-  └── No  → Write raw SQL with `wren --sql` (look for memory recall first)
+  ├── Yes → Are cubes defined? (`ontology cube list` once at start of session)
+  │         ├── Yes → Does a cube cover the question? (`ontology cube describe`)
+  │         │         ├── Yes → Use `ontology cube query` (preferred — lower error rate)
+  │         │         └── No  → Write raw SQL with `ontology --sql`
+  │         └── No  → Write raw SQL with `ontology --sql`
+  └── No  → Write raw SQL with `ontology --sql` (look for memory recall first)
 ```
 
 ---
@@ -402,4 +402,4 @@ User question → Is it an aggregation question?
 - Do not store failed queries or queries the user said are wrong
 - Do not skip storing successful queries with a clear NL question — default is to store
 - Do not re-index before every query — once per MDL change
-- Do not pass passwords via `--connection-info` if shell history is shared — use profiles (`wren profile add`) or `--connection-file`
+- Do not pass passwords via `--connection-info` if shell history is shared — use profiles (`ontology profile add`) or `--connection-file`

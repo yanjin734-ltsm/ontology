@@ -1,4 +1,4 @@
-"""``wren docs`` — connection-info generation."""
+"""``ontology docs`` — connection-info generation."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Annotated, Optional
 
 import typer
 
-docs_app = typer.Typer(name="docs", help="Generate documentation for Wren Engine")
+docs_app = typer.Typer(name="docs", help="Generate documentation for Ontology Engine")
 
 
 @docs_app.command(name="connection-info")

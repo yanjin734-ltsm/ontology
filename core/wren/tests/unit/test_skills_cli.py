@@ -1,4 +1,4 @@
-"""Tests for `wren skills` content delivery (tracer bullet: infra + usage)."""
+"""Tests for `ontology skills` content delivery (tracer bullet: infra + usage)."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def test_skills_get_usage_returns_guide():
     result = runner.invoke(app, ["skills", "get", "usage"])
     assert result.exit_code == 0
     assert result.output.strip().startswith("---")  # markdown frontmatter
-    assert "Wren Engine CLI" in result.output
+    assert "Ontology Engine CLI" in result.output
 
 
 def test_skills_get_usage_is_trimmed():
@@ -40,7 +40,7 @@ def test_skills_get_usage_is_trimmed():
 def test_skills_get_unknown_errors_with_hint():
     result = runner.invoke(app, ["skills", "get", "does-not-exist"])
     assert result.exit_code != 0
-    assert "wren skills list" in result.output
+    assert "ontology skills list" in result.output
 
 
 def test_skills_list_api_reports_usage():

@@ -1,21 +1,21 @@
 ---
 name: enrich-context
-description: "Augment a Wren project with business context that DB schema cannot carry — enum value meanings, units (USD vs cents, ms vs sec), NULL semantics, magic sentinels (-1 = unknown), soft-delete default filters, business synonyms, time-grain / TZ conventions, cross-system identifiers, currency rules, canonical-table preferences, AND named aggregation metrics (ARR, churn, DAU, WAU, NRR) proposed as cubes. Runs in one of two modes selected at session start: `grill` (one question at a time, user-driven) or `auto-pilot` (agent infers and applies, escalates only on conflicts and high-blast-radius additions like new cubes / views / relationships). Reads everything under <project>/raw/ (PDFs, glossaries, handbooks, code, data dictionaries) and optionally samples low-cardinality columns from the live DB (grill mode), compares against the current MDL / cubes / knowledge (rules + NL→SQL pairs), then fills gaps via the ten-category gap catalog and the cube proposal flow. Confirmed findings are written back to the right sink. Use when: user says 'enrich context', 'augment my project', 'grill me on this project', 'auto-fill my context', 'agent doesn't understand our docs / enum values / units / null meanings', 'business context is missing', 'what does status=A mean', 'is this amount in USD or cents', 'we keep getting wrong aggregations', 'add cubes for ARR / DAU / churn', 'we have a handbook / glossary / data dictionary the agent should know'; or after generating an MDL and noticing the agent lacks business semantics."
+description: "Augment an Ontology Engine project with business context that DB schema cannot carry — enum value meanings, units (USD vs cents, ms vs sec), NULL semantics, magic sentinels (-1 = unknown), soft-delete default filters, business synonyms, time-grain / TZ conventions, cross-system identifiers, currency rules, canonical-table preferences, AND named aggregation metrics (ARR, churn, DAU, WAU, NRR) proposed as cubes. Runs in one of two modes selected at session start: `grill` (one question at a time, user-driven) or `auto-pilot` (agent infers and applies, escalates only on conflicts and high-blast-radius additions like new cubes / views / relationships). Reads everything under <project>/raw/ (PDFs, glossaries, handbooks, code, data dictionaries) and optionally samples low-cardinality columns from the live DB (grill mode), compares against the current MDL / cubes / knowledge (rules + NL→SQL pairs), then fills gaps via the ten-category gap catalog and the cube proposal flow. Confirmed findings are written back to the right sink. Use when: user says 'enrich context', 'augment my project', 'grill me on this project', 'auto-fill my context', 'agent doesn't understand our docs / enum values / units / null meanings', 'business context is missing', 'what does status=A mean', 'is this amount in USD or cents', 'we keep getting wrong aggregations', 'add cubes for ARR / DAU / churn', 'we have a handbook / glossary / data dictionary the agent should know'; or after generating an MDL and noticing the agent lacks business semantics."
 license: Apache-2.0
 metadata:
-  author: wrenai
+  author: ontology-cli
 ---
 
 # Wren Enrich Context — Fill the Business-Context Gap
 
-This skill exists because most business context never lives in a DB schema — it lives in handbooks, glossaries, finance reports, support playbooks, code comments, Slack rules-of-thumb. The agent reads those raw artifacts, finds what's missing from the Wren project, and **either grills the user one question at a time (grill mode) or applies its best inferences directly and hands over an audit (auto-pilot mode)** before writing back. The output lands in the sinks each project already has — MDL, `cubes/`, `knowledge/rules/`, and `knowledge/sql/` — no new artifact, no new tooling.
+This skill exists because most business context never lives in a DB schema — it lives in handbooks, glossaries, finance reports, support playbooks, code comments, Slack rules-of-thumb. The agent reads those raw artifacts, finds what's missing from the Ontology Engine project, and **either grills the user one question at a time (grill mode) or applies its best inferences directly and hands over an audit (auto-pilot mode)** before writing back. The output lands in the sinks each project already has — MDL, `cubes/`, `knowledge/rules/`, and `knowledge/sql/` — no new artifact, no new tooling.
 
 ## Hard rules — READ FIRST
 
 ### Universal (apply to both modes)
 
 1. **Only add, never modify existing.** If you find an existing MDL description / relationship / rule that looks wrong, **do not edit it**. Surface it on the "please fix manually" list shown in Step 9.
-2. **Every MDL edit must validate.** Right after any MDL YAML change, run `wren context validate`. If it fails, **revert that single change** and feed the error back. Never leave a project in an invalid state.
+2. **Every MDL edit must validate.** Right after any MDL YAML change, run `ontology context validate`. If it fails, **revert that single change** and feed the error back. Never leave a project in an invalid state.
 3. **Pre-draft every proposal.** Whether you're showing the draft to the user (grill) or applying it directly (auto-pilot), generate the concrete content — never lazy-ask "what should the description say?".
 4. **Be explicit about confidence.** In grill mode, open Lane 3 inference questions with "I'm guessing — ". In auto-pilot, tag every Lane 3 inference and partial Lane 2 match in the Step 9 audit with confidence (high / med / low) and source.
 
@@ -49,9 +49,9 @@ Remember the choice as `MODE = grill | autopilot` and use it to branch Steps 6 a
 
 ## Preflight
 
-### Step 1 — Choose the Wren project
+### Step 1 — Choose the Ontology Engine project
 
-**Always ask the user which project to enrich before doing anything else** — never assume cwd. A user can have several Wren projects and an ambient `~/.wren` profile that doesn't match the one they want to augment.
+**Always ask the user which project to enrich before doing anything else** — never assume cwd. A user can have several Ontology Engine projects and an ambient `~/.ontology` profile that doesn't match the one they want to augment.
 
 Offer concrete hints in the question so the user can answer in one round-trip:
 
@@ -59,15 +59,15 @@ Offer concrete hints in the question so the user can answer in one round-trip:
 # Hint 1 — does cwd look like a project?
 test -f wren_project.yml && pwd
 
-# Hint 2 — does ~/.wren/config.yml point at a default project?
-grep -E '^project_path:' ~/.wren/config.yml 2>/dev/null
+# Hint 2 — does ~/.ontology/config.yml point at a default project?
+grep -E '^project_path:' ~/.ontology/config.yml 2>/dev/null
 ```
 
 Then ask:
 
-> Which Wren project do you want me to augment?
+> Which Ontology Engine project do you want me to augment?
 > a) `$PWD` (current directory)         ← if Hint 1 matched
-> b) `<path from ~/.wren/config.yml>`   ← if Hint 2 matched
+> b) `<path from ~/.ontology/config.yml>`   ← if Hint 2 matched
 > c) something else — paste the absolute path
 
 After the user answers, lock the path in for the whole session:
@@ -75,31 +75,31 @@ After the user answers, lock the path in for the whole session:
 ```bash
 cd <chosen-path>
 test -f wren_project.yml || {
-  echo "Error: <chosen-path> is not a Wren project (no wren_project.yml)."
+  echo "Error: <chosen-path> is not an Ontology Engine project (no wren_project.yml)."
   exit 1
 }
-wren context show >/dev/null 2>&1 || {
+ontology context show >/dev/null 2>&1 || {
   echo "Error: wren context show failed — manifest may be invalid."
   exit 1
 }
 ```
 
-If either check fails, stop and tell the user — suggest `wren skills get onboarding` if it's not a project, or `wren context validate` if the manifest is broken.
+If either check fails, stop and tell the user — suggest `ontology skills get onboarding` if it's not a project, or `ontology context validate` if the manifest is broken.
 
 From this point on, **every command and file path in this skill is relative to the chosen project root**. Do not switch projects mid-session — if the user wants to work a different project, end this session and re-run.
 
 ### Step 2 — Detect semantic-memory availability
 
 ```bash
-wren memory status 2>/dev/null | grep -q "Backend: lancedb"
+ontology memory status 2>/dev/null | grep -q "Backend: lancedb"
 ```
 
-Writing NL→SQL pairs (`wren memory store` → `knowledge/sql/*.md`) works **regardless** — that
+Writing NL→SQL pairs (`ontology memory store` → `knowledge/sql/*.md`) works **regardless** — that
 sink is always open. This checks which recall backend is active, i.e. whether the optional
 `memory` extra is installed (LanceDB = semantic; grep = dependency-free fallback):
 
-- Match (`Backend: lancedb`) → set `MEMORY_AVAILABLE = true`. Semantic recall and `wren memory fetch` are usable, and `wren memory index` builds an embedding index in Step 8.
-- No match (grep backend) → set `MEMORY_AVAILABLE = false`. Skip the semantic read/index paths below; pair writeback still happens via `wren memory store`, and grep recall still works.
+- Match (`Backend: lancedb`) → set `MEMORY_AVAILABLE = true`. Semantic recall and `ontology memory fetch` are usable, and `ontology memory index` builds an embedding index in Step 8.
+- No match (grep backend) → set `MEMORY_AVAILABLE = false`. Skip the semantic read/index paths below; pair writeback still happens via `ontology memory store`, and grep recall still works.
 
 ### Step 3 — Ensure raw/ folder exists
 
@@ -131,13 +131,13 @@ Read every file under `raw/`. Use whatever capability your agent has natively (t
 
 | Source | Command |
 |---|---|
-| MDL (full) | `wren context show --output json` |
-| Business rules | `wren context instructions` (reads `knowledge/rules/` + any legacy `instructions.md`) |
-| Existing cubes (names) | `wren cube list` |
-| Existing cubes (measures + dimensions) | `wren cube describe <cube>` for each name above |
+| MDL (full) | `ontology context show --output json` |
+| Business rules | `ontology context instructions` (reads `knowledge/rules/` + any legacy `instructions.md`) |
+| Existing cubes (names) | `ontology cube list` |
+| Existing cubes (measures + dimensions) | `ontology cube describe <cube>` for each name above |
 | NL→SQL pairs | read `knowledge/sql/*.md` directly |
-| (Memory) stored pairs | `wren memory list -n 200 --output json` |
-| (Memory) schema as text | `wren memory describe` |
+| (Memory) stored pairs | `ontology memory list -n 200 --output json` |
+| (Memory) schema as text | `ontology memory describe` |
 
 The memory rows only matter when `MEMORY_AVAILABLE = true`. Reading cubes is essential before any Lane 3 metric proposal — see `cube_proposals` for the duplication guard.
 
@@ -165,9 +165,9 @@ Categories #2 (unit), #4, #6, #8, #9, #10 are **not** probable — `SELECT DISTI
 **Probe query:**
 
 ```bash
-wren --sql "SELECT DISTINCT <col> FROM <model> LIMIT 30" --output json
+ontology --sql "SELECT DISTINCT <col> FROM <model> LIMIT 30" --output json
 # For magic sentinels (catalog #5), also fetch min/max:
-wren --sql "SELECT MIN(<col>) AS lo, MAX(<col>) AS hi FROM <model>" --output json
+ontology --sql "SELECT MIN(<col>) AS lo, MAX(<col>) AS hi FROM <model>" --output json
 ```
 
 - **≤ 30 distinct values returned** → enum / sentinel / grain candidate. Draft the `[tag]` line and surface to user (grill) with confidence "med — probed values, semantics still inferred".
@@ -226,7 +226,7 @@ After reading raw and the current MDL, propose additions the user did **not** li
 - "Your support handbook keeps mentioning `core users` without defining it. Is this `users WHERE tier = 'premium'`? Want me to make a view?"
 - "The data dictionary says `events.payload` is JSON but the column has no description — let me draft one."
 
-For any aggregation-shaped proposal (`SUM`, `COUNT`, `AVG`, "by month / by status / per customer" patterns), **default to a cube**. Run `wren cube list` + `wren cube describe` first to confirm no existing cube already covers the measure expression; if one does, skip the proposal and add a `knowledge/sql/` example pointing at the existing cube instead. The full decision tree, naming rules, and validation flow live in `cube_proposals`.
+For any aggregation-shaped proposal (`SUM`, `COUNT`, `AVG`, "by month / by status / per customer" patterns), **default to a cube**. Run `ontology cube list` + `ontology cube describe` first to confirm no existing cube already covers the measure expression; if one does, skip the proposal and add a `knowledge/sql/` example pointing at the existing cube instead. The full decision tree, naming rules, and validation flow live in `cube_proposals`.
 
 **In grill mode, open every Lane 3 question with "I'm guessing — ".** In auto-pilot, tag the audit entry with `agent inference` so the user sees you extrapolated.
 
@@ -269,7 +269,7 @@ For everything else (Lane 1 mechanical fixes, Lane 2 unambiguous new claims, Lan
 1. Synthesize the concrete proposal (description / rule / SQL pair) using your best inference.
 2. Decide the sink using the routing table (Step 7).
 3. Write back.
-4. Run `wren context validate` immediately after any MDL edit. On failure: revert the single change and log the revert with the error.
+4. Run `ontology context validate` immediately after any MDL edit. On failure: revert the single change and log the revert with the error.
 5. Append to the audit list: the finding, the sink, confidence tag (high / med / low), and source (raw file + excerpt for Lane 2, `agent inference` for Lane 3, `structural` for Lane 1).
 
 Auto-pilot does not pause for confirmation on each item — the user reviews the full diff + audit list in Step 9. They are the reviewer, not the gatekeeper.
@@ -281,16 +281,16 @@ Decide the sink as part of the proposal (Step 6.3 in grill mode; Step 6.2 in aut
 | Finding type | Sink | How to write |
 |---|---|---|
 | Schema structure / relationship / view / model or column description | **MDL YAML** under `models/`, `views/`, `relationships.yml` | Edit the YAML file directly. For catalog #1 / #2 / #3 / #5 / #7 / PII, append a `[tag]` line to `properties.description` (prose first, then one tag per category). See `gap_catalog` for the exact tag format and triggers. |
-| Aggregation metric / named measure (with measures + dimensions) | **`cubes/<name>/metadata.yml`** | New file per cube. Default sink for any `SUM` / `COUNT` / `AVG` / ratio metric raw defines or Lane 3 infers. See `cube_proposals` for the YAML template, naming policy, duplication guard, and validation flow. Run `wren context validate` + `wren cube query --cube <name> --sql-only` after writing; revert on either failure. **Always escalates to grill in auto-pilot** (Universal Rule 7b). |
+| Aggregation metric / named measure (with measures + dimensions) | **`cubes/<name>/metadata.yml`** | New file per cube. Default sink for any `SUM` / `COUNT` / `AVG` / ratio metric raw defines or Lane 3 infers. See `cube_proposals` for the YAML template, naming policy, duplication guard, and validation flow. Run `ontology context validate` + `ontology cube query --cube <name> --sql-only` after writing; revert on either failure. **Always escalates to grill in auto-pilot** (Universal Rule 7b). |
 | Default filter / implicit rule / business convention / naming convention / external mapping / currency / canonical table | **`knowledge/rules/`** | Append under the catalog-specified `##` section heading (#4 → `## Default filters`, #6 → `## Naming conventions`, #8 → `## External identifiers`, #9 → `## Currency`, #10 → `## Canonical tables`) inside a topic file under `knowledge/rules/` (e.g. `knowledge/rules/conventions.md`). Create the file/heading if absent; never modify existing text. |
-| NL→SQL example (canonical or ad-hoc) | **`knowledge/sql/`** | `wren memory store --nl "..." --sql "..." --tags "source:enrich"` — writes `knowledge/sql/<slug>.md` (committable) and indexes it when the extra is present. Works whether or not `MEMORY_AVAILABLE`. |
+| NL→SQL example (canonical or ad-hoc) | **`knowledge/sql/`** | `ontology memory store --nl "..." --sql "..." --tags "source:enrich"` — writes `knowledge/sql/<slug>.md` (committable) and indexes it when the extra is present. Works whether or not `MEMORY_AVAILABLE`. |
 
 Catalog-driven routing means every column-local proposal goes to the column's `properties.description` with a `[tag]` line; every cross-model rule goes to `knowledge/rules/` under a fixed heading. This keeps re-enrichment deterministic (greppable) and avoids inventing new sink locations.
 
 ### After every MDL edit
 
 ```bash
-wren context validate
+ontology context validate
 ```
 
 If it fails:
@@ -301,8 +301,8 @@ If it fails:
 
 ### Format reminders
 
-- NL→SQL pairs are written by `wren memory store`; each becomes a `knowledge/sql/<slug>.md` with YAML frontmatter (`nl`, `sql`, `source`, optional `datasource`/`tags`). Don't hand-write the files — use `wren memory store --tags "source:enrich"`.
-- MDL YAML uses snake_case keys (e.g. `primary_key`, `is_calculated`, `not_null`). `wren context build` converts to camelCase for `target/mdl.json`.
+- NL→SQL pairs are written by `ontology memory store`; each becomes a `knowledge/sql/<slug>.md` with YAML frontmatter (`nl`, `sql`, `source`, optional `datasource`/`tags`). Don't hand-write the files — use `ontology memory store --tags "source:enrich"`.
+- MDL YAML uses snake_case keys (e.g. `primary_key`, `is_calculated`, `not_null`). `ontology context build` converts to camelCase for `target/mdl.json`.
 - `knowledge/rules/` holds free-form markdown, one file per topic. Group rules by topic with `##` headings.
 
 ## Step 8 — Session finalize
@@ -310,7 +310,7 @@ If it fails:
 After Step 6 ends (user says stop in grill mode, or every finding is processed in auto-pilot):
 
 ```bash
-wren context build
+ontology context build
 ```
 
 This recompiles `target/mdl.json` from the YAML edits.
@@ -318,11 +318,11 @@ This recompiles `target/mdl.json` from the YAML edits.
 If `MEMORY_AVAILABLE = true`:
 
 ```bash
-wren memory index
+ontology memory index
 ```
 
 This rebuilds the index from the MDL schema items and the `knowledge/sql/` pairs. (Business
-rules in `knowledge/rules/` are read by `wren context instructions`, not embedded by `index`.)
+rules in `knowledge/rules/` are read by `ontology context instructions`, not embedded by `index`.)
 
 ## Step 9 — Summary
 
@@ -384,11 +384,11 @@ The user should be encouraged to skim the audit and either accept it as-is, manu
 - Do not install new Python packages (`pypdf`, `docling`, …) to read raw. Use what your agent already has; ask the user to convert files you can't open.
 - Do not auto-resolve a conflict between raw and current MDL — always grill the user, in **both** modes.
 - Do not present Lane 3 inferences as if they were quoted from raw. Open with "I'm guessing — " (grill) or tag `agent inference` (auto-pilot).
-- `wren memory store` works whether or not `MEMORY_AVAILABLE` — it always writes the `knowledge/sql/*.md` pair (and indexes it only when the extra is present). No need to fall back to another sink.
+- `ontology memory store` works whether or not `MEMORY_AVAILABLE` — it always writes the `knowledge/sql/*.md` pair (and indexes it only when the extra is present). No need to fall back to another sink.
 - Do not commit anything to git. The user owns the commit decision.
 - Do not nag about skipped questions. Skip is skip for this session (grill mode only — auto-pilot has no skip concept).
-- Do not run `wren context build` after every single MDL edit — once at the end is enough. Do run `wren context validate` after every edit.
-- Do not assume `raw/` was created by `wren context init` — it isn't. This skill creates it.
+- Do not run `ontology context build` after every single MDL edit — once at the end is enough. Do run `ontology context validate` after every edit.
+- Do not assume `raw/` was created by `ontology context init` — it isn't. This skill creates it.
 - Do not switch modes mid-session. The user re-runs to change mode.
 - Do not append a `[tag]` line if the same category tag already exists for that column — Universal Rule 1. Surface contradictions on the manual-fix list instead.
 - Do not invent new `knowledge/rules/` section headings. Stick to the five catalog-defined headings (`## Default filters`, `## Naming conventions`, `## External identifiers`, `## Currency`, `## Canonical tables`). Anything that doesn't fit goes on the manual-fix list.
@@ -396,7 +396,7 @@ The user should be encouraged to skim the audit and either accept it as-is, manu
 - Do not propose a cube whose measure expression already exists in another cube on the same `base_object` — write a `knowledge/sql/` example pointing at the existing cube instead. See `cube_proposals` duplication guard.
 - Do not modify an existing cube YAML even when raw contradicts it — Universal Rule 1. Surface on the manual-fix list.
 - Do not write a new cube alongside an old MDL `metrics:` entry that already covers the same logic. Surface as "consider migrating to cube" on the manual-fix list.
-- Do not skip `wren cube query --cube <name> --sql-only` after creating a cube. Structural `wren context validate` doesn't catch unresolvable measure / dimension expressions.
+- Do not skip `ontology cube query --cube <name> --sql-only` after creating a cube. Structural `ontology context validate` doesn't catch unresolvable measure / dimension expressions.
 - In auto-pilot, do not auto-apply Lane 2 conflicts or new metric / view / relationship inferences — always drop into grill for those.
 
 ## See also

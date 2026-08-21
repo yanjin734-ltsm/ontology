@@ -1,4 +1,4 @@
-"""``wren ask`` — wrap a user prompt for agent consumption.
+"""``ontology ask`` — wrap a user prompt for agent consumption.
 
 Mode (``--guided`` or ``--direct``) must be chosen explicitly; there is no
 default. The reason: the two modes wrap prompts very differently, and a
