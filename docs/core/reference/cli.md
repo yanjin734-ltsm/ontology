@@ -49,9 +49,14 @@ The data source is always read from the `datasource` field in `connection_info.j
 
 ```bash
 wren --sql '...' \
-  --mdl /path/to/other-mdl.json \
+  --space /path/to/other-mdl.json \
   --connection-file /path/to/prod-connection_info.json
 ```
+
+`--space` is the preferred manifest-input name. The legacy `--mdl` flag is
+deprecated but remains supported with identical path/base64 behavior. Passing
+both flags is an error. When neither is present, the CLI still discovers
+`<project>/target/mdl.json`.
 
 Or pass connection info inline:
 
@@ -177,7 +182,8 @@ nothing to build and this command is a no-op.
 
 ```bash
 wren memory index                          # uses ~/.wren/mdl.json
-wren memory index --mdl /path/to/mdl.json  # explicit MDL file
+wren memory index --space /path/to/mdl.json  # preferred manifest input
+wren memory index --mdl /path/to/mdl.json    # legacy, still supported
 ```
 
 ### `wren memory watch`
@@ -196,7 +202,8 @@ backend there is no derived index to keep fresh, so this command exits with a me
 | `--interval`, `-i` | Seconds between polls (min 1). Default: `5`. |
 | `--reindex-on-start` / `--no-reindex-on-start` | Reindex once on startup before watching. Default: off. |
 | `--max-polls` | Stop after N polls (mainly for scripting/testing). Default: run until Ctrl+C. |
-| `--mdl` | Explicit MDL file (must live under the watched project root). |
+| `--space` | Explicit Space manifest (must live under the watched project root). |
+| `--mdl` | Deprecated but supported alias for `--space`. |
 | `--path` | Project root to watch. Defaults to the discovered project. |
 
 ```bash
@@ -211,7 +218,7 @@ Print the full schema as structured plain text. No embedding or LanceDB required
 
 ```bash
 wren memory describe                          # uses ~/.wren/mdl.json
-wren memory describe --mdl /path/to/mdl.json
+wren memory describe --space /path/to/mdl.json
 ```
 
 ### `wren memory fetch`
@@ -229,7 +236,8 @@ wren memory fetch -q "order date" --threshold 50000 --output json
 | Flag | Description |
 |------|-------------|
 | `-q, --query` | Search query (required) |
-| `--mdl` | Path to MDL JSON file |
+| `--space` | Path to a Space manifest JSON file |
+| `--mdl` | Deprecated but supported alias for `--space` |
 | `-l, --limit` | Max results for search strategy (default: 5) |
 | `-t, --type` | Filter: `model`, `column`, `relationship`, `view` (search strategy only) |
 | `--model` | Filter by model name (search strategy only) |
@@ -364,7 +372,8 @@ cat query.json | wren cube query --from -
 | `--limit` / `--offset` | Pagination |
 | `--from <file\|->` | Load CubeQuery as JSON from a file or stdin |
 | `--sql-only` | Print the generated SQL and exit without executing |
-| `--mdl` | Path to MDL JSON (defaults to `<project>/target/mdl.json`) |
+| `--space` | Path to a Space manifest JSON (defaults to `<project>/target/mdl.json`) |
+| `--mdl` | Deprecated but supported alias for `--space` |
 | `--output` | `table` (default), `json`, `csv` |
 
 **Supported granularities:** `year`, `quarter`, `month`, `week`, `day`, `hour`, `minute`.

@@ -716,8 +716,12 @@ def test_discover_no_project_raises(tmp_path, monkeypatch):
     import wren.context as ctx  # noqa: PLC0415
 
     importlib.reload(ctx)
-    with pytest.raises(SystemExit, match="no Ontology Engine project found"):
+    with pytest.raises(SystemExit, match="no Ontology Engine project found") as exc:
         ctx.discover_project_path()
+    message = str(exc.value)
+    assert "data warehouse/dbt directory" in message
+    assert "ontology context init" in message
+    assert "`cd` to a directory containing wren_project.yml" in message
 
 
 def test_discover_via_env_var(tmp_path, monkeypatch):

@@ -14,6 +14,7 @@ from importlib import resources
 import yaml
 
 _CONTENT_DIR = "skills_content"
+_SKILL_ALIASES = {"generate-space": "generate-mdl"}
 
 
 class SkillNotFoundError(Exception):
@@ -39,7 +40,7 @@ def _content_root():
 
 def _skill_dir(name: str):
     root = _content_root()
-    skill = root / name
+    skill = root / _SKILL_ALIASES.get(name, name)
     if not (skill.is_dir() and (skill / "SKILL.md").is_file()):
         raise SkillNotFoundError(name)
     return skill
@@ -80,7 +81,7 @@ def get_script(name: str, script: str) -> str:
 
 
 def list_skills() -> list[SkillInfo]:
-    """List every bundled skill, sorted by name."""
+    """List every bundled skill and public alias, sorted by name."""
     root = _content_root()
     out: list[SkillInfo] = []
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
@@ -94,7 +95,18 @@ def list_skills() -> list[SkillInfo]:
                 scripts=_script_stems(entry / "scripts"),
             )
         )
-    return out
+    by_name = {skill.name: skill for skill in out}
+    for alias, target in _SKILL_ALIASES.items():
+        canonical = by_name[target]
+        out.append(
+            SkillInfo(
+                name=alias,
+                summary=canonical.summary,
+                references=list(canonical.references),
+                scripts=list(canonical.scripts),
+            )
+        )
+    return sorted(out, key=lambda skill: skill.name)
 
 
 _SUMMARY_MAX = 100

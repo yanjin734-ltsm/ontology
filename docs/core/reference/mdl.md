@@ -8,6 +8,26 @@ This page documents every YAML artifact in a Wren project — `wren_project.yml`
 
 > For the conceptual framing of MDL, see [What does MDL do for the agent?](/oss/concepts/what_is_mdl). For the project lifecycle commands, see [Manage project](/oss/guides/manage_project). For the canonical YAML compilation flow, run `wren context build` after editing.
 
+## Ontology Space terminology
+
+An [Ontology Space](/oss/concepts/what_is_ontology_space) is the complete
+project context. The names on this reference page map to that concept as
+follows:
+
+| Term | Meaning |
+|---|---|
+| Ontology Space | The versionable project: structural files plus the separate `knowledge/` plane. |
+| Structural plane | Models, columns, relationships, views, and cubes authored in YAML. |
+| Space manifest / Manifest | The compiled structural JSON contract at `target/mdl.json`. |
+| MDL | The compatible format and runtime vocabulary used by the Manifest, CLI, SDK, and engine. |
+| Space namespace | The Manifest's logical project-level `catalog` and `schema`; existing defaults remain `wren` and `public`. |
+
+The `knowledge/` directory belongs to the Space but is not compiled into the
+Manifest. OSI is an import format rather than a Space, and a model's physical
+`table_reference.catalog` / `table_reference.schema` do not name the Space.
+The commands, filenames, and field names below remain unchanged for
+compatibility.
+
 ## Project structure
 
 ```text

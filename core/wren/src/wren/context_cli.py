@@ -10,7 +10,7 @@ import typer
 
 context_app = typer.Typer(
     name="context",
-    help="Manage MDL context — models, views, relationships, and instructions.",
+    help="Manage an Ontology Space — structural models and project knowledge.",
 )
 
 

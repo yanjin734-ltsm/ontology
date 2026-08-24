@@ -1,5 +1,12 @@
 # What is Modeling Definition Language (MDL)?
 
+> **Migration note:** MDL remains the supported compatibility format and
+> runtime contract for the structural plane of an [Ontology
+> Space](/oss/concepts/what_is_ontology_space). Existing MDL projects,
+> `wren_project.yml`, `target/mdl.json`, `--mdl`, and public MDL APIs continue
+> to work. “Ontology Space” names the wider project context—structure plus
+> knowledge—and does not replace or enlarge the MDL Manifest.
+
 Modeling Definition Language (MDL) is the semantic contract at the center of Wren AI.
 
 It is how you tell agents, applications, and humans what your business data means: which datasets exist, which fields are exposed, how entities relate, which calculations are reusable, and which query-shaped objects should be treated as stable interfaces.

@@ -43,6 +43,17 @@ def _require_mdl(mdl: str | None) -> str:
     raise typer.Exit(1)
 
 
+def _resolve_mdl_option(mdl: str | None, space: str | None) -> str | None:
+    """Resolve the MDL compatibility flag and its preferred Space alias."""
+    if mdl is not None and space is not None:
+        typer.echo(
+            "Error: --mdl and --space are mutually exclusive; pass only one.",
+            err=True,
+        )
+        raise typer.Exit(1)
+    return space if space is not None else mdl
+
+
 def _load_manifest(mdl: str) -> str:
     """Load MDL from a file path or treat as base64 string directly."""
     path = Path(mdl).expanduser()
@@ -285,7 +296,20 @@ MdlOpt = Annotated[
     typer.Option(
         "--mdl",
         "-m",
-        help="Path to MDL JSON file or base64 string. Defaults to <project>/target/mdl.json.",
+        help=(
+            "Deprecated but supported: use --space. "
+            "Path to an MDL JSON file or base64 string."
+        ),
+    ),
+]
+SpaceOpt = Annotated[
+    Optional[str],
+    typer.Option(
+        "--space",
+        help=(
+            "Path to a Space manifest JSON file or base64 string. "
+            "Defaults to <project>/target/mdl.json."
+        ),
     ),
 ]
 ConnInfoOpt = Annotated[
@@ -362,6 +386,7 @@ def main(
         ),
     ] = None,
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     connection_info: ConnInfoOpt = None,
     connection_file: ConnFileOpt = None,
     limit: LimitOpt = None,
@@ -409,6 +434,7 @@ def main(
     """
     if ctx.invoked_subcommand is not None:
         return
+    mdl = _resolve_mdl_option(mdl, space)
     if sql is None:
         typer.echo(ctx.get_help())
         return
@@ -429,6 +455,7 @@ def main(
 def query(
     sql: Annotated[str, typer.Option("--sql", "-s", help="SQL query to execute")],
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     connection_info: ConnInfoOpt = None,
     connection_file: ConnFileOpt = None,
     limit: LimitOpt = None,
@@ -436,6 +463,7 @@ def query(
     quiet: QuietOpt = False,
 ):
     """Execute a SQL query through the Wren semantic layer."""
+    mdl = _resolve_mdl_option(mdl, space)
     with _build_engine(mdl, connection_info, connection_file) as engine:
         try:
             result = engine.query(sql, limit=limit)
@@ -458,6 +486,7 @@ def dry_plan(
         ),
     ] = None,
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     connection_file: ConnFileOpt = None,
 ):
     """Plan SQL through MDL and print the expanded SQL (no DB required)."""
@@ -466,6 +495,7 @@ def dry_plan(
     from wren.model.data_source import DataSource  # noqa: PLC0415
     from wren.model.error import WrenError  # noqa: PLC0415
 
+    mdl = _resolve_mdl_option(mdl, space)
     manifest_str = _load_manifest(_require_mdl(mdl))
 
     # Try project-pinned profile (or fall back to active) when no explicit
@@ -537,10 +567,12 @@ def dry_plan(
 def dry_run(
     sql: Annotated[str, typer.Option("--sql", "-s", help="SQL query to dry-run")],
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     connection_info: ConnInfoOpt = None,
     connection_file: ConnFileOpt = None,
 ):
     """Dry-run SQL against the data source (parse + validate, no results returned)."""
+    mdl = _resolve_mdl_option(mdl, space)
     with _build_engine(mdl, connection_info, connection_file) as engine:
         try:
             engine.dry_run(sql)

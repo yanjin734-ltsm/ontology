@@ -61,10 +61,22 @@ ALL_SKILLS = {
     "onboarding",
     "usage",
     "generate-mdl",
+    "generate-space",
     "dlt-connector",
     "enrich-context",
     "genbi",
 }
+
+
+def test_generate_space_alias_returns_generate_mdl_content():
+    legacy = skills_delivery.get_skill("generate-mdl")
+    preferred = skills_delivery.get_skill("generate-space")
+    assert preferred == legacy
+
+    for name in ("generate-space", "generate-mdl"):
+        result = runner.invoke(app, ["skills", "get", name])
+        assert result.exit_code == 0, result.output
+        assert result.output == legacy + "\n"
 
 
 def test_all_skills_bundled():

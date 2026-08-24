@@ -291,7 +291,7 @@ The engine dependency remains upstream `wren-core-py`.
 
 ```bash
 pip install -e ./core/wren
-ontology --version                      # ontology-cli 0.13.3
+ontology --version                      # ontology-cli 0.13.4
 ```
 
 ## License

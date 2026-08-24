@@ -411,8 +411,11 @@ def discover_project_path(explicit: str | None = None) -> Path:
 
     raise SystemExit(
         "Error: no Ontology Engine project found.\n"
-        "  Run this command from a directory containing wren_project.yml,\n"
-        "  run `ontology context init` to create one, or set ONTOLOGY_PROJECT_HOME."
+        "  This looks like a data warehouse/dbt directory rather than an "
+        "Ontology Space.\n"
+        "  Run `ontology context init` here (or in a separate Space directory),\n"
+        "  or `cd` to a directory containing wren_project.yml. You can also set "
+        "ONTOLOGY_PROJECT_HOME."
     )
 
 

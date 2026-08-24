@@ -1,0 +1,10 @@
+name: customer_orders
+statement: 'SELECT c.first_name, c.last_name, o.order_id, o.amount
+
+  FROM orders o
+
+  JOIN customers c ON o.customer_id = c.customer_id
+
+  '
+properties:
+  description: Orders joined to customer names.

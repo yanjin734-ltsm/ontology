@@ -20,7 +20,17 @@ _MdlOpt = Annotated[
     typer.Option(
         "--mdl",
         "-m",
-        help="Path to MDL JSON file. Defaults to <project>/target/mdl.json.",
+        help="Deprecated but supported: use --space. Path to an MDL JSON file.",
+    ),
+]
+_SpaceOpt = Annotated[
+    Optional[str],
+    typer.Option(
+        "--space",
+        help=(
+            "Path to a Space manifest JSON file. "
+            "Defaults to <project>/target/mdl.json."
+        ),
     ),
 ]
 
@@ -157,8 +167,11 @@ def _load_manifest_dict(mdl: str | None) -> dict:
 
 
 @cube_app.command(name="list")
-def list_cubes(mdl: _MdlOpt = None) -> None:
+def list_cubes(mdl: _MdlOpt = None, space: _SpaceOpt = None) -> None:
     """List all cubes defined in the project."""
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
+
+    mdl = _resolve_mdl_option(mdl, space)
     manifest = _load_manifest_dict(mdl)
     cubes = manifest.get("cubes", []) or []
     if not cubes:
@@ -188,8 +201,12 @@ def list_cubes(mdl: _MdlOpt = None) -> None:
 def describe(
     name: Annotated[str, typer.Argument(help="Cube name to describe")],
     mdl: _MdlOpt = None,
+    space: _SpaceOpt = None,
 ) -> None:
     """Print the full schema for a cube (JSON)."""
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
+
+    mdl = _resolve_mdl_option(mdl, space)
     manifest = _load_manifest_dict(mdl)
     cubes = manifest.get("cubes", []) or []
     cube = next((c for c in cubes if c.get("name") == name), None)
@@ -254,6 +271,7 @@ def query(
         ),
     ] = False,
     mdl: _MdlOpt = None,
+    space: _SpaceOpt = None,
     connection_info: Annotated[
         Optional[str],
         typer.Option("--connection-info", help="Inline JSON connection string"),
@@ -273,6 +291,9 @@ def query(
     SQL by wren-core, then executed through WrenEngine just like a regular
     ``ontology query``.
     """
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
+
+    mdl = _resolve_mdl_option(mdl, space)
     if from_json:
         cube_query = _load_cube_query_from(from_json)
     else:

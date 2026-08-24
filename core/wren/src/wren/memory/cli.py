@@ -33,7 +33,17 @@ MdlOpt = Annotated[
     typer.Option(
         "--mdl",
         "-m",
-        help="Path to MDL JSON file. Defaults to <project>/target/mdl.json.",
+        help="Deprecated but supported: use --space. Path to an MDL JSON file.",
+    ),
+]
+SpaceOpt = Annotated[
+    Optional[str],
+    typer.Option(
+        "--space",
+        help=(
+            "Path to a Space manifest JSON file. "
+            "Defaults to <project>/target/mdl.json."
+        ),
     ),
 ]
 OutputOpt = Annotated[
@@ -150,6 +160,7 @@ def _print_results(results: list[dict], output: str) -> None:
 @memory_app.command()
 def index(
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     path: PathOpt = None,
     include_instructions: Annotated[
         bool,
@@ -173,8 +184,10 @@ def index(
     + knowledge/sql pairs). Without it: the grep backend reads knowledge/sql/*.md
     directly, so there is nothing to build.
     """
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
     from wren.memory.index_backend import resolve_backend  # noqa: PLC0415
 
+    mdl = _resolve_mdl_option(mdl, space)
     if resolve_backend() == "grep":
         from wren.context import discover_project_path  # noqa: PLC0415
         from wren.memory.markdown import load_query_pairs  # noqa: PLC0415
@@ -287,10 +300,13 @@ def index(
 @memory_app.command()
 def describe(
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
 ) -> None:
     """Print the full schema as structured plain text (no embedding needed)."""
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
     from wren.memory.schema_indexer import describe_schema  # noqa: PLC0415
 
+    mdl = _resolve_mdl_option(mdl, space)
     manifest = _load_manifest(mdl)
     text = describe_schema(manifest)
     typer.echo(text)
@@ -300,6 +316,7 @@ def describe(
 def fetch(
     query: Annotated[str, typer.Option("--query", "-q", help="Search query")],
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     limit: Annotated[int, typer.Option("--limit", "-l")] = 5,
     item_type: Annotated[
         Optional[str],
@@ -327,6 +344,9 @@ def fetch(
     Small schemas are returned as full plain text.  Large schemas use
     embedding search with optional --type and --model filters.
     """
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
+
+    mdl = _resolve_mdl_option(mdl, space)
     manifest = _load_manifest(mdl)
     store = _get_store(path)
     kwargs: dict = {"limit": limit, "item_type": item_type, "model_name": model_name}
@@ -566,6 +586,7 @@ def check(
 @memory_app.command()
 def watch(
     mdl: MdlOpt = None,
+    space: SpaceOpt = None,
     path: PathOpt = None,
     interval: Annotated[
         float,
@@ -602,10 +623,12 @@ def watch(
     Requires the ``memory`` extra (the index it maintains is LanceDB-backed).
     With the grep backend there is no derived index to keep fresh.
     """
+    from wren.cli import _resolve_mdl_option  # noqa: PLC0415
     from wren.context import discover_project_path  # noqa: PLC0415
     from wren.memory.index_backend import resolve_backend  # noqa: PLC0415
     from wren.memory.watch import watch_loop  # noqa: PLC0415
 
+    mdl = _resolve_mdl_option(mdl, space)
     if resolve_backend() == "grep":
         typer.echo(
             "grep backend: knowledge/sql/ IS the index — nothing to watch. "

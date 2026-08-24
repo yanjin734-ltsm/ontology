@@ -1,15 +1,17 @@
 ---
 name: generate-mdl
-description: "Generate a MDL project by exploring a database with available tools (SQLAlchemy, database drivers, MCP connectors, or raw SQL). Guides agents through schema discovery, type normalization, and MDL YAML generation using the ontology CLI. Use when: user wants to create or set up a new MDL, onboard a new data source, or scaffold a project from an existing database."
+description: "Generate an Ontology Space (MDL-compatible project) by exploring a database with available tools (SQLAlchemy, database drivers, MCP connectors, or raw SQL). Guides agents through schema discovery, type normalization, and MDL YAML generation using the ontology CLI. Use when: user wants to create or set up an Ontology Space or new MDL, onboard a new data source, or scaffold a wren project from an existing database. Legacy triggers include 'generate mdl', 'wren generate mdl', and 'scaffold wren project'."
 license: Apache-2.0
 metadata:
   author: ontology-cli
 ---
 
-# Generate Wren MDL — CLI Agent Workflow
+# Generate an Ontology Space — `generate-mdl` CLI Agent Workflow
 
-Builds an MDL project by discovering database schema and converting it
-into Wren's YAML project format. The agent uses whatever database tools
+Builds an Ontology Space by discovering database schema and converting it
+into MDL-compatible YAML project files. The Space contains this structural
+plane and the separate `knowledge/` plane; the compiled Manifest remains
+`target/mdl.json`. The agent uses whatever database tools
 are available in its environment for introspection; the ontology CLI handles
 type normalization, validation, and build.
 
@@ -142,7 +144,7 @@ echo '[{"column":"id","raw_type":"int8"},{"column":"name","raw_type":"character 
   | wren utils parse-types --dialect postgres
 ```
 
-## Phase 4 — Scaffold and write MDL project
+## Phase 4 — Scaffold and write the Ontology Space
 
 **Goal:** Create the YAML project structure.
 
@@ -277,7 +279,7 @@ operational. See `ontology skills get usage` for query workflows.
 
 ## Phase 7 — Iterate with the user
 
-The initial MDL is a starting point. Improve it by:
+The initial MDL-compatible structure is a starting point. Improve the Space by:
 - Adding calculated columns based on business logic
 - Adding views for common query patterns
 - Refining descriptions based on actual query usage
